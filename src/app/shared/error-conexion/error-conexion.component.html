@@ -1,0 +1,6 @@
+<div class="tarjeta error-conexion" role="alert" data-testid="error-conexion">
+  <p data-testid="error-conexion-mensaje">{{ mensaje }}</p>
+  <button type="button" class="btn" (click)="reintentar.emit()" data-testid="error-conexion-reintentar">
+    Reintentar
+  </button>
+</div>

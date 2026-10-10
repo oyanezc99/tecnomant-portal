@@ -1,0 +1,74 @@
+.detalle-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+}
+
+.detalle-datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 32px;
+}
+
+dt {
+  color: var(--color-texto-suave);
+  font-size: 0.85rem;
+}
+
+dd {
+  font-weight: 600;
+}
+
+.detalle-bloque > p,
+.galeria {
+  padding: 4px 18px 16px;
+}
+
+/* Ítems en Malo: fondo rojo suave, también al pasar el mouse (FR6.4) */
+.tabla tbody .fila-malo,
+.tabla tbody .fila-malo:hover {
+  background: var(--color-malo-suave);
+}
+
+.galeria {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.miniatura {
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: var(--color-fondo);
+  cursor: pointer;
+}
+
+.miniatura img {
+  display: block;
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+}
+
+/* Foto ampliada: se abre con fundido sobre un fondo oscuro (FR6.6, FR9.7) */
+.visor {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.85);
+  animation: fundido 200ms ease backwards;
+}
+
+.visor img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--radio);
+}

@@ -1,0 +1,5 @@
+<div class="avisos" data-testid="avisos">
+  @for (aviso of toast.avisos(); track aviso.id) {
+    <p class="aviso" role="alert" data-testid="aviso">{{ aviso.texto }}</p>
+  }
+</div>

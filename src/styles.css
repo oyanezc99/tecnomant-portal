@@ -1,0 +1,343 @@
+/*
+ * Estilos globales del portal de TecnoMant: variables de color, tipografía y las
+ * piezas que comparten todas las pantallas. Lo propio de cada pantalla está en
+ * el CSS de su componente. Las animaciones son solo CSS y duran entre 150 y 400 ms.
+ */
+
+:root {
+  /* Identidad visual (FR8.4) */
+  --color-principal: #2f5d8a;
+  --color-fondo: #f4f6f9;
+  --color-pendiente: #d9a400;
+  --color-en-proceso: #2f6fb0;
+  --color-completada: #2e8b57;
+  --color-bien: #2e8b57;
+  --color-regular: #d9a400;
+  --color-malo: #b3261e;
+
+  /* Colores de apoyo */
+  --color-principal-suave: #eaf0f6;
+  --color-malo-suave: #fbeceb;
+  --color-texto: #1f2933;
+  --color-texto-suave: #5f6b7a;
+  --color-borde: #dde3ea;
+
+  --radio: 10px;
+  --sombra-suave: 0 1px 2px rgba(31, 41, 51, 0.06), 0 4px 14px rgba(31, 41, 51, 0.07);
+  --sombra-elevada: 0 6px 16px rgba(31, 41, 51, 0.2);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 15px;
+}
+
+body {
+  margin: 0;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: 'Segoe UI', Arial, sans-serif;
+  line-height: 1.45;
+}
+
+h1,
+h2,
+p,
+dl,
+dd {
+  margin: 0;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-en-proceso);
+  outline-offset: 2px;
+}
+
+/* Página: aparece con un fundido y sube 8 px (FR9.1) */
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: pagina-entrar 300ms ease backwards;
+}
+
+.barra-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Tarjetas y tablas: blancas, con sombra suave y esquinas de 10 px (FR8.5) */
+.tarjeta {
+  background: #fff;
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-suave);
+}
+
+.tarjeta-titulo {
+  padding: 16px 18px 4px;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.tabla-contenedor {
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla th,
+.tabla td {
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--color-borde);
+  text-align: left;
+}
+
+.tabla th {
+  color: var(--color-texto-suave);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Filas: aparecen en cascada, 40 ms entre una y otra, hasta 10 (FR9.4) */
+.tabla tbody tr {
+  animation: fila-entrar 250ms ease backwards;
+  transition: background-color 150ms ease;
+}
+
+.tabla tbody tr:hover {
+  background: var(--color-principal-suave);
+}
+
+.tabla tbody tr:nth-child(2) { animation-delay: 40ms; }
+.tabla tbody tr:nth-child(3) { animation-delay: 80ms; }
+.tabla tbody tr:nth-child(4) { animation-delay: 120ms; }
+.tabla tbody tr:nth-child(5) { animation-delay: 160ms; }
+.tabla tbody tr:nth-child(6) { animation-delay: 200ms; }
+.tabla tbody tr:nth-child(7) { animation-delay: 240ms; }
+.tabla tbody tr:nth-child(8) { animation-delay: 280ms; }
+.tabla tbody tr:nth-child(9) { animation-delay: 320ms; }
+.tabla tbody tr:nth-child(n + 10) { animation-delay: 360ms; }
+
+.fila-enlace {
+  cursor: pointer;
+}
+
+/* Fila esqueleto: brillo que se desplaza mientras llegan los datos (FR7.4) */
+.esqueleto {
+  display: block;
+  height: 14px;
+  border-radius: 7px;
+  background: linear-gradient(90deg, #e6ebf1 25%, #f4f6f9 50%, #e6ebf1 75%);
+  background-size: 200% 100%;
+  animation: brillo 400ms linear infinite alternate;
+}
+
+/* Botones: se elevan al pasar el mouse y se hunden al presionar (FR9.2) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--color-principal);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-elevada);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn-secundario {
+  border-color: var(--color-borde);
+  background: #fff;
+  color: var(--color-principal);
+}
+
+.btn-peligro {
+  background: var(--color-malo);
+}
+
+.btn-pequeno {
+  padding: 4px 10px;
+  font-size: 0.9rem;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: girar 400ms linear infinite;
+}
+
+/* Badges: pastillas redondeadas con el color del estado y texto blanco (FR8.3) */
+.badge {
+  display: inline-block;
+  padding: 2px 11px;
+  border-radius: 999px;
+  background: var(--color-texto-suave);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-pendiente { background: var(--color-pendiente); }
+.badge-en-proceso { background: var(--color-en-proceso); }
+.badge-completada { background: var(--color-completada); }
+.badge-bien { background: var(--color-bien); }
+.badge-regular { background: var(--color-regular); }
+.badge-malo { background: var(--color-malo); }
+
+.badge-grande {
+  padding: 6px 18px;
+  font-size: 1.05rem;
+}
+
+/* Formularios */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-weight: 600;
+}
+
+.control {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1px solid var(--color-borde);
+  border-radius: 8px;
+  background: #fff;
+  font-weight: 400;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.control:focus {
+  outline: none;
+  border-color: var(--color-principal);
+  box-shadow: 0 0 0 3px rgba(47, 93, 138, 0.18);
+}
+
+/* Campo obligatorio sin completar: se marca en rojo (FR4.5) */
+.control.invalido {
+  border-color: var(--color-malo);
+  background: var(--color-malo-suave);
+}
+
+.formulario-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* Estado vacío: un icono y un texto cuando no hay datos */
+.estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 16px;
+  color: var(--color-texto-suave);
+  text-align: center;
+}
+
+.estado-vacio svg {
+  width: 44px;
+  height: 44px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+/* Animaciones compartidas */
+@keyframes pagina-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes fila-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes fundido {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes brillo {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Movimiento reducido: sin animaciones ni transiciones (NFR5) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

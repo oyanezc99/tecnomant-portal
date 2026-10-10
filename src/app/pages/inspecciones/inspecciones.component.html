@@ -1,0 +1,51 @@
+<div class="barra-acciones">
+  <label class="filtro">
+    Estado general
+    <select #selector class="control" (change)="estado.set(selector.value)" data-testid="inspecciones-filtro-estado">
+      @for (opcion of opciones; track opcion) {
+        <option [value]="opcion">{{ opcion }}</option>
+      }
+    </select>
+  </label>
+</div>
+
+@if (errorCarga(); as mensaje) {
+  <app-error-conexion [mensaje]="mensaje" (reintentar)="cargar()" />
+} @else if (!cargando() && inspecciones().length === 0) {
+  <div class="tarjeta estado-vacio" data-testid="inspecciones-vacio">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="5" y="4" width="14" height="17" rx="2" />
+      <path d="M9 4h6v3H9zM9 12h6M9 16h4" />
+    </svg>
+    <p>Aún no hay inspecciones</p>
+  </div>
+} @else {
+  <div class="tarjeta tabla-contenedor">
+    <table class="tabla" data-testid="inspecciones-tabla">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Equipo</th>
+          <th>Técnico</th>
+          <th>Estado general</th>
+        </tr>
+      </thead>
+      @if (cargando()) {
+        <tbody app-filas-esqueleto [filas]="5" [columnas]="5"></tbody>
+      } @else {
+        <tbody>
+          @for (inspeccion of filtradas(); track inspeccion.idInspeccion) {
+            <tr class="fila-enlace" (click)="abrir(inspeccion.idInspeccion)" data-testid="inspecciones-fila">
+              <td>{{ inspeccion.fechaHoraReal | fechaHora }}</td>
+              <td>{{ inspeccion.cliente }}</td>
+              <td>{{ inspeccion.equipoTipo }} · {{ inspeccion.equipoCodigo }}</td>
+              <td>{{ inspeccion.tecnico }}</td>
+              <td><app-badge [texto]="inspeccion.estadoGeneral" /></td>
+            </tr>
+          }
+        </tbody>
+      }
+    </table>
+  </div>
+}

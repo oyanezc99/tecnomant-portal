@@ -1,0 +1,11 @@
+<div class="modal-fondo" data-testid="modal">
+  <section class="tarjeta modal-ventana" role="dialog" aria-modal="true" [attr.aria-label]="titulo">
+    <header class="modal-cabecera">
+      <h2 data-testid="modal-titulo">{{ titulo }}</h2>
+      <button type="button" class="modal-cerrar" aria-label="Cerrar" (click)="cerrar.emit()" data-testid="modal-cerrar">
+        ✕
+      </button>
+    </header>
+    <ng-content />
+  </section>
+</div>

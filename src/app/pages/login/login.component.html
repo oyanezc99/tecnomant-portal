@@ -1,0 +1,37 @@
+<form
+  class="tarjeta formulario login-tarjeta"
+  [class.sacudir]="sacudir()"
+  (animationend)="sacudir.set(false)"
+  (ngSubmit)="ingresar()"
+  data-testid="login-tarjeta"
+>
+  <h1 class="login-titulo">Iniciar sesión</h1>
+
+  <label class="campo">
+    Usuario
+    <input class="control" name="usuario" autocomplete="username" [(ngModel)]="usuario" data-testid="login-usuario" />
+  </label>
+
+  <label class="campo">
+    Clave
+    <input
+      class="control"
+      type="password"
+      name="clave"
+      autocomplete="current-password"
+      [(ngModel)]="clave"
+      data-testid="login-clave"
+    />
+  </label>
+
+  @if (mensaje()) {
+    <p class="login-mensaje" role="alert" data-testid="login-mensaje">{{ mensaje() }}</p>
+  }
+
+  <button type="submit" class="btn" [disabled]="esperando()" data-testid="login-ingresar">
+    @if (esperando()) {
+      <span class="spinner" data-testid="login-spinner"></span>
+    }
+    Ingresar
+  </button>
+</form>

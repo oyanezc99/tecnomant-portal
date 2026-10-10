@@ -1,0 +1,45 @@
+<header class="barra">
+  <button
+    type="button"
+    class="boton-menu"
+    aria-label="Menú"
+    [attr.aria-expanded]="menuAbierto()"
+    (click)="menuAbierto.set(!menuAbierto())"
+    data-testid="layout-boton-menu"
+  >
+    ☰
+  </button>
+  <span class="barra-titulo" data-testid="layout-titulo-portal">TecnoMant · Portal administrativo</span>
+  <span data-testid="layout-usuario">{{ nombreUsuario }}</span>
+  <button type="button" class="btn barra-salir" (click)="cerrarSesion()" data-testid="layout-cerrar-sesion">
+    Cerrar sesión
+  </button>
+</header>
+
+<div class="cuerpo">
+  <nav class="menu" [class.abierto]="menuAbierto()" aria-label="Menú principal" data-testid="layout-menu">
+    @for (opcion of opciones; track opcion.id) {
+      @if (opcion.ruta) {
+        <a
+          class="menu-opcion"
+          [routerLink]="opcion.ruta"
+          routerLinkActive="activa"
+          (click)="menuAbierto.set(false)"
+          [attr.data-testid]="'menu-' + opcion.id"
+        >
+          <span class="menu-etiqueta">{{ opcion.etiqueta }}</span>
+        </a>
+      } @else {
+        <span class="menu-opcion desactivada" aria-disabled="true" [attr.data-testid]="'menu-' + opcion.id">
+          <span class="menu-etiqueta">{{ opcion.etiqueta }}</span>
+          <span class="menu-proximamente">Próximamente</span>
+        </span>
+      }
+    }
+  </nav>
+
+  <main class="contenido">
+    <h1 class="titulo-pagina" data-testid="layout-titulo-pagina">{{ titulo }}</h1>
+    <router-outlet />
+  </main>
+</div>

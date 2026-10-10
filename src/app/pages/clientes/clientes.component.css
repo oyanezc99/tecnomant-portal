@@ -1,0 +1,8 @@
+.clientes-buscar {
+  max-width: 320px;
+}
+
+.acciones {
+  display: flex;
+  gap: 6px;
+}

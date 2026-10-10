@@ -1,0 +1,44 @@
+/* Fondo con fundido y ventana que crece de 95 % a 100 % (FR9.6) */
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(31, 41, 51, 0.5);
+  animation: fundido 200ms ease backwards;
+}
+
+.modal-ventana {
+  width: 100%;
+  max-width: 460px;
+  padding: 20px 22px;
+  animation: modal-crecer 200ms ease backwards;
+}
+
+.modal-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.modal-cabecera h2 {
+  font-size: 1.15rem;
+}
+
+.modal-cerrar {
+  border: 0;
+  background: none;
+  color: var(--color-texto-suave);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+@keyframes modal-crecer {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}

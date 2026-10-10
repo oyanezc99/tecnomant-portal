@@ -1,0 +1,4 @@
+/* Los colores de la pastilla están en styles.css (.badge). */
+:host {
+  display: inline-block;
+}

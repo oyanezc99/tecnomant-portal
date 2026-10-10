@@ -1,0 +1,7 @@
+@for (fila of listaFilas; track fila) {
+  <tr aria-hidden="true" data-testid="fila-esqueleto">
+    @for (columna of listaColumnas; track columna) {
+      <td><span class="esqueleto"></span></td>
+    }
+  </tr>
+}

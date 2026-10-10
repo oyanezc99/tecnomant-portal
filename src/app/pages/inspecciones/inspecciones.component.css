@@ -1,0 +1,10 @@
+.filtro {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.filtro .control {
+  width: auto;
+}

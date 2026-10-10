@@ -1,0 +1,94 @@
+<div class="barra-acciones">
+  <button type="button" class="btn btn-secundario" (click)="volver()" data-testid="detalle-volver">← Volver</button>
+</div>
+
+@if (errorCarga(); as mensaje) {
+  <app-error-conexion [mensaje]="mensaje" (reintentar)="cargar()" />
+} @else {
+  @if (inspeccion(); as detalle) {
+    <section class="tarjeta detalle-cabecera" data-testid="detalle-cabecera">
+      <dl class="detalle-datos">
+        <div>
+          <dt>Cliente</dt>
+          <dd>{{ detalle.cliente }}</dd>
+        </div>
+        <div>
+          <dt>Equipo</dt>
+          <dd>{{ detalle.equipoTipo }} · {{ detalle.equipoCodigo }}</dd>
+        </div>
+        <div>
+          <dt>Técnico</dt>
+          <dd>{{ detalle.tecnico }}</dd>
+        </div>
+        <div>
+          <dt>Fecha</dt>
+          <dd>{{ detalle.fechaHoraReal | fechaHora }}</dd>
+        </div>
+      </dl>
+      <app-badge [texto]="detalle.estadoGeneral" [grande]="true" />
+    </section>
+
+    <section class="tarjeta detalle-bloque">
+      <h2 class="tarjeta-titulo">Observaciones generales</h2>
+      <p data-testid="detalle-observaciones">{{ detalle.observaciones || 'Sin observaciones' }}</p>
+    </section>
+
+    <section class="tarjeta tabla-contenedor">
+      <h2 class="tarjeta-titulo">Ítems del checklist</h2>
+      <table class="tabla" data-testid="detalle-items">
+        <thead>
+          <tr>
+            <th>Ítem</th>
+            <th>Resultado</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of detalle.items; track $index) {
+            <tr [class.fila-malo]="item.resultado === 'Malo'" data-testid="detalle-item">
+              <td>{{ item.nombreItem }}</td>
+              <td><app-badge [texto]="item.resultado" /></td>
+              <td>{{ item.observacion }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section class="tarjeta detalle-bloque">
+      <h2 class="tarjeta-titulo">Fotos</h2>
+      <div class="galeria">
+        @for (evidencia of detalle.evidencias; track evidencia.idEvidencia) {
+          <button
+            type="button"
+            class="miniatura"
+            (click)="fotoAmpliada.set(urlFoto(evidencia))"
+            data-testid="detalle-miniatura"
+          >
+            <img [src]="urlFoto(evidencia)" alt="Foto de la inspección" />
+          </button>
+        } @empty {
+          <span>Sin fotos</span>
+        }
+      </div>
+    </section>
+  } @else {
+    <!-- Mientras llega la respuesta: filas esqueleto -->
+    <div class="tarjeta tabla-contenedor">
+      <table class="tabla">
+        <tbody app-filas-esqueleto [filas]="4" [columnas]="3"></tbody>
+      </table>
+    </div>
+  }
+}
+
+@if (fotoAmpliada(); as foto) {
+  <div class="visor" (click)="cerrarFoto()" data-testid="detalle-visor">
+    <img
+      [src]="foto"
+      alt="Foto ampliada de la inspección"
+      (click)="$event.stopPropagation()"
+      data-testid="detalle-foto-ampliada"
+    />
+  </div>
+}

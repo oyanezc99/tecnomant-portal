@@ -1,0 +1,134 @@
+<div class="barra-acciones">
+  <input
+    #buscador
+    type="search"
+    class="control clientes-buscar"
+    placeholder="Buscar cliente"
+    aria-label="Buscar cliente"
+    (input)="busqueda.set(buscador.value)"
+    data-testid="clientes-buscar"
+  />
+  <button type="button" class="btn" (click)="abrirModal()" data-testid="clientes-nuevo">+ Nuevo cliente</button>
+</div>
+
+@if (errorCarga(); as mensaje) {
+  <app-error-conexion [mensaje]="mensaje" (reintentar)="cargar()" />
+} @else if (!cargando() && clientes().length === 0) {
+  <div class="tarjeta estado-vacio" data-testid="clientes-vacio">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 5.2a3 3 0 0 1 0 5.6M18 14.4c2.1.8 3.5 2.8 3.5 5.6" />
+    </svg>
+    <p>Aún no hay clientes. Crea el primero</p>
+  </div>
+} @else {
+  <div class="tarjeta tabla-contenedor">
+    <table class="tabla" data-testid="clientes-tabla">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Razón social</th>
+          <th>Dirección</th>
+          <th>Contacto</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      @if (cargando()) {
+        <tbody app-filas-esqueleto [filas]="5" [columnas]="5"></tbody>
+      } @else {
+        <tbody>
+          @for (cliente of filtrados(); track cliente.idCliente) {
+            <tr [attr.data-testid]="'clientes-fila-' + cliente.idCliente">
+              <td>{{ cliente.idCliente }}</td>
+              <td>{{ cliente.razonSocial }}</td>
+              <td>{{ cliente.direccion }}</td>
+              <td>{{ cliente.contacto }}</td>
+              <td>
+                <div class="acciones">
+                  <button
+                    type="button"
+                    class="btn btn-secundario btn-pequeno"
+                    (click)="abrirModal(cliente)"
+                    data-testid="clientes-editar"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-peligro btn-pequeno"
+                    (click)="porEliminar.set(cliente)"
+                    data-testid="clientes-eliminar"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      }
+    </table>
+  </div>
+}
+
+@if (modalAbierto()) {
+  <app-modal [titulo]="enEdicion() ? 'Editar cliente' : 'Nuevo cliente'" (cerrar)="modalAbierto.set(false)">
+    <form class="formulario" (ngSubmit)="guardar()">
+      <label class="campo">
+        Razón social *
+        <input
+          class="control"
+          [class.invalido]="invalidos().razonSocial"
+          name="razonSocial"
+          [(ngModel)]="formulario.razonSocial"
+          data-testid="clientes-razon-social"
+        />
+      </label>
+      <label class="campo">
+        Dirección *
+        <input
+          class="control"
+          [class.invalido]="invalidos().direccion"
+          name="direccion"
+          [(ngModel)]="formulario.direccion"
+          data-testid="clientes-direccion"
+        />
+      </label>
+      <label class="campo">
+        Contacto
+        <input class="control" name="contacto" [(ngModel)]="formulario.contacto" data-testid="clientes-contacto" />
+      </label>
+      <div class="formulario-botones">
+        <button type="button" class="btn btn-secundario" (click)="modalAbierto.set(false)" data-testid="clientes-cancelar">
+          Cancelar
+        </button>
+        <button type="submit" class="btn" [disabled]="guardando()" data-testid="clientes-guardar">Guardar</button>
+      </div>
+    </form>
+  </app-modal>
+}
+
+@if (porEliminar(); as cliente) {
+  <app-modal titulo="Eliminar cliente" (cerrar)="porEliminar.set(null)">
+    <p data-testid="clientes-confirmacion">¿Eliminar a {{ cliente.razonSocial }}?</p>
+    <div class="formulario-botones">
+      <button
+        type="button"
+        class="btn btn-secundario"
+        (click)="porEliminar.set(null)"
+        data-testid="clientes-cancelar-eliminar"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="btn btn-peligro"
+        [disabled]="eliminando()"
+        (click)="confirmarEliminar()"
+        data-testid="clientes-confirmar-eliminar"
+      >
+        Eliminar
+      </button>
+    </div>
+  </app-modal>
+}

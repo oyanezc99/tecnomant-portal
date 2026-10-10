@@ -1,0 +1,39 @@
+/* La pantalla entra con el fundido de página; la sacudida va aparte, en la tarjeta. */
+:host {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 16px;
+  animation: pagina-entrar 300ms ease backwards;
+}
+
+.login-tarjeta {
+  width: 100%;
+  max-width: 360px;
+  padding: 30px 28px;
+}
+
+.login-titulo {
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+.login-mensaje {
+  color: var(--color-malo);
+}
+
+/* Login con error: la tarjeta se sacude de lado a lado una vez (FR1.5) */
+.sacudir {
+  animation: sacudida 400ms ease;
+}
+
+@keyframes sacudida {
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
+}

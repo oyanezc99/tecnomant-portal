@@ -1,0 +1,8 @@
+/* El brillo de .esqueleto está en styles.css; aquí solo varía el ancho de las barras. */
+.esqueleto {
+  width: 80%;
+}
+
+td:nth-child(even) .esqueleto {
+  width: 55%;
+}

@@ -1,0 +1,139 @@
+.barra {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 56px;
+  padding: 0 18px;
+  background: var(--color-principal);
+  color: #fff;
+}
+
+.barra-titulo {
+  flex: 1;
+  overflow: hidden;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barra-salir {
+  border-color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+
+.boton-menu {
+  display: none;
+  border: 0;
+  background: none;
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.cuerpo {
+  display: flex;
+  align-items: flex-start;
+}
+
+.menu {
+  position: sticky;
+  top: 56px;
+  flex: 0 0 220px;
+  height: calc(100vh - 56px);
+  padding: 12px 0;
+  background: #fff;
+  box-shadow: var(--sombra-suave);
+}
+
+.menu-opcion {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 20px;
+  overflow: hidden;
+  color: var(--color-texto);
+  text-decoration: none;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+a.menu-opcion:hover,
+.menu-opcion.activa {
+  background: var(--color-principal-suave);
+  color: var(--color-principal);
+}
+
+.menu-opcion.activa {
+  font-weight: 600;
+}
+
+/* Barra de color a la izquierda: se desliza al activar la opción (FR2.2, FR9.3) */
+.menu-opcion::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--color-principal);
+  transform: translateX(-4px);
+  transition: transform 250ms ease;
+}
+
+.menu-opcion.activa::before {
+  transform: none;
+}
+
+.desactivada {
+  color: #9aa5b1;
+  cursor: not-allowed;
+}
+
+.menu-proximamente {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--color-fondo);
+  font-size: 0.75rem;
+}
+
+.contenido {
+  flex: 1;
+  min-width: 0;
+  padding: 22px 26px 40px;
+}
+
+.titulo-pagina {
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Menos de 768 px: el menú se oculta y lo abre el botón ☰ (FR2.6) */
+@media (max-width: 767px) {
+  .boton-menu {
+    display: block;
+  }
+
+  .menu {
+    position: fixed;
+    left: 0;
+    z-index: 90;
+    width: 230px;
+    box-shadow: var(--sombra-elevada);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 250ms ease, visibility 250ms;
+  }
+
+  .menu.abierto {
+    transform: none;
+    visibility: visible;
+  }
+
+  .contenido {
+    padding: 16px 14px 32px;
+  }
+}
