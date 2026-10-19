@@ -59,8 +59,55 @@ export interface Evidencia {
 }
 
 /** Respuesta de `GET /api/inspecciones/{id}`. */
-export interface InspeccionDetalle extends Inspeccion {
+export interface InspeccionDetalle {
+  idInspeccion: number;
+  idOrden: number;
+  fechaHoraReal: string;
+  cliente: string;
+  equipoTipo: string;
+  equipoCodigo: string;
+  tecnico: string;
+  estadoGeneral: Resultado | string;
   observaciones: string | null;
   items: ItemChecklist[];
   evidencias: Evidencia[];
+}
+
+export interface Equipo {
+  idEquipo: number;
+  idCliente: number;
+  tipo: string;
+  codigoSerie: string;
+  ubicacion: string;
+  clienteRazonSocial?: string;
+}
+
+export type DatosEquipo = Omit<Equipo, 'idEquipo' | 'clienteRazonSocial'>;
+
+export interface Tecnico {
+  idTecnico: number;
+  nombre: string;
+  dni: string;
+  especialidad: string;
+  usuario: string;
+  clave: string;
+}
+
+export interface DatosTecnico {
+  nombre: string;
+  dni: string;
+  especialidad: string;
+  usuario: string;
+  clave: string;
+}
+
+export interface OrdenTecnico {
+  idOrden: number;
+  cliente: string;
+  direccion: string;
+  equipoTipo: string;
+  equipoCodigo: string;
+  ubicacion?: string;
+  fechaProgramada: string;
+  estado: string;
 }

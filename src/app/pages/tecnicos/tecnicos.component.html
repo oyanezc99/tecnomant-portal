@@ -1,0 +1,167 @@
+<div class="barra-acciones" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+  <input
+    #buscador
+    type="search"
+    class="control"
+    placeholder="Buscar por nombre, DNI, especialidad o usuario..."
+    aria-label="Buscar técnico"
+    [(ngModel)]="filtroTexto"
+    style="flex: 1; min-width: 250px;"
+  />
+  <div style="display: flex; gap: 8px;">
+    <button type="button" class="btn btn-secundario" (click)="exportarCSV()">📥 Exportar CSV</button>
+    <button type="button" class="btn" (click)="abrirModalCrear()">+ Nuevo técnico</button>
+  </div>
+</div>
+
+@if (cargando) {
+  <div class="tarjeta estado-vacio">
+    <p>Cargando técnicos...</p>
+  </div>
+} @else if (tecnicosFiltrados.length === 0) {
+  <div class="tarjeta estado-vacio">
+    <p>No se encontraron técnicos registrados.</p>
+  </div>
+} @else {
+  <div class="tarjeta tabla-contenedor">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Nombre</th>
+          <th>DNI</th>
+          <th>Especialidad</th>
+          <th>Carga Operativa</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (tec of tecnicosPaginados; track tec.idTecnico) {
+          <tr (click)="abrirPerfil(tec)" style="cursor: pointer;" title="Haz clic para ver asignaciones e inspecciones del técnico">
+            <td>{{ tec.idTecnico }}</td>
+            <td><strong>{{ tec.nombre }}</strong></td>
+            <td>{{ tec.dni }}</td>
+            <td>{{ tec.especialidad }}</td>
+            <td>
+              @let carga = obtenerCargaTrabajo(tec.nombre);
+              <app-badge [texto]="carga.texto" />
+            </td>
+            <td>
+              <div class="acciones">
+                <button type="button" class="btn btn-secundario btn-pequeno" (click)="abrirModalEditar(tec, $event)">
+                  Editar
+                </button>
+                <button type="button" class="btn btn-peligro btn-pequeno" (click)="eliminar(tec.idTecnico, $event)">
+                  Eliminar
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <!-- Controles de Paginación -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-top: 1px solid var(--color-borde); flex-wrap: wrap; gap: 12px; font-size: 0.9rem; color: var(--color-texto-suave);">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span>Mostrar:</span>
+        <select class="control" (change)="cambiarRegistrosPorPagina($event)" style="width: 80px; padding: 4px 8px;">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+        </select>
+        <span>registros por página</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+        <div style="display: flex; gap: 6px;">
+          <button type="button" class="btn btn-secundario btn-pequeno" [disabled]="paginaActual === 1" (click)="cambiarPagina(paginaActual - 1)">
+            Anterior
+          </button>
+          <button type="button" class="btn btn-secundario btn-pequeno" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(paginaActual + 1)">
+            Siguiente
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal de Perfil y Carga de Trabajo del Técnico -->
+@if (modalPerfilAbierto && tecnicoSeleccionado) {
+  <app-modal [titulo]="'Perfil y Asignaciones: ' + tecnicoSeleccionado.nombre" (cerrar)="cerrarPerfil()">
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="background: var(--color-principal-suave, #f1f5f9); padding: 12px; border-radius: 6px; font-size: 0.9rem;">
+        <p><strong>DNI:</strong> {{ tecnicoSeleccionado.dni }}</p>
+        <p><strong>Especialidad:</strong> {{ tecnicoSeleccionado.especialidad }}</p>
+        <p><strong>Usuario de acceso:</strong> {{ tecnicoSeleccionado.usuario }}</p>
+      </div>
+
+      <div>
+        <h3 style="font-size: 1rem; margin-bottom: 8px; color: var(--color-principal);">Inspecciones y Trabajos Asignados</h3>
+        @if (inspeccionesTecnico.length === 0) {
+          <p style="font-size: 0.9rem; color: var(--color-texto-suave);">Este técnico no tiene inspecciones asignadas actualmente.</p>
+        } @else {
+          <table class="tabla" style="font-size: 0.85rem;">
+            <thead>
+              <tr>
+                <th>Id</th>
+                <th>Cliente</th>
+                <th>Equipo</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (insp of inspeccionesTecnico; track insp.idInspeccion) {
+                <tr>
+                  <td>{{ insp.idInspeccion }}</td>
+                  <td>{{ insp.cliente }}</td>
+                  <td>{{ insp.equipoTipo }} · {{ insp.equipoCodigo }}</td>
+                  <td><app-badge [texto]="insp.estadoGeneral" /></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  </app-modal>
+}
+
+<!-- Modal Crear / Editar Técnico -->
+@if (modalAbierto) {
+  <app-modal [titulo]="editando ? 'Editar técnico' : 'Nuevo técnico'" (cerrar)="cerrarModal()">
+    <div class="formulario">
+      <label class="campo">
+        Nombre completo *
+        <input class="control" [(ngModel)]="formulario.nombre" placeholder="Ej. Carlos Mendoza" />
+      </label>
+
+      <label class="campo">
+        DNI *
+        <input class="control" [(ngModel)]="formulario.dni" placeholder="Ej. 10000001" />
+      </label>
+
+      <label class="campo">
+        Especialidad *
+        <input class="control" [(ngModel)]="formulario.especialidad" placeholder="Ej. Ascensores" />
+      </label>
+
+      <label class="campo">
+        Usuario *
+        <input class="control" [(ngModel)]="formulario.usuario" placeholder="Ej. tec01" />
+      </label>
+
+      <label class="campo">
+        Clave *
+        <input class="control" type="password" [(ngModel)]="formulario.clave" placeholder="Contraseña" />
+      </label>
+
+      <div class="formulario-botones">
+        <button type="button" class="btn btn-secundario" (click)="cerrarModal()">Cancelar</button>
+        <button type="button" class="btn" (click)="guardar()">Guardar</button>
+      </div>
+    </div>
+  </app-modal>
+}

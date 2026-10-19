@@ -1,12 +1,14 @@
-<div class="barra-acciones">
+<div class="barra-acciones" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
   <label class="filtro">
     Estado general
-    <select #selector class="control" (change)="estado.set(selector.value)" data-testid="inspecciones-filtro-estado">
+    <select #selector class="control" (change)="cambiarEstado(selector.value)" data-testid="inspecciones-filtro-estado">
       @for (opcion of opciones; track opcion) {
-        <option [value]="opcion">{{ opcion }}</option>
+        <option [value]="opcion" [selected]="opcion === estado()">{{ opcion }}</option>
       }
     </select>
   </label>
+
+  <button type="button" class="btn btn-secundario" (click)="exportarCSV()">📥 Exportar CSV</button>
 </div>
 
 @if (errorCarga(); as mensaje) {
@@ -35,7 +37,7 @@
         <tbody app-filas-esqueleto [filas]="5" [columnas]="5"></tbody>
       } @else {
         <tbody>
-          @for (inspeccion of filtradas(); track inspeccion.idInspeccion) {
+          @for (inspeccion of paginadas(); track inspeccion.idInspeccion) {
             <tr class="fila-enlace" (click)="abrir(inspeccion.idInspeccion)" data-testid="inspecciones-fila">
               <td>{{ inspeccion.fechaHoraReal | fechaHora }}</td>
               <td>{{ inspeccion.cliente }}</td>
@@ -47,5 +49,30 @@
         </tbody>
       }
     </table>
+
+    <!-- Controles de Paginación -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-top: 1px solid var(--color-borde); flex-wrap: wrap; gap: 12px; font-size: 0.9rem; color: var(--color-texto-suave);">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span>Mostrar:</span>
+        <select class="control" (change)="cambiarRegistrosPorPagina($event)" style="width: 80px; padding: 4px 8px;">
+          <option value="10" [selected]="registrosPorPagina() === 10">10</option>
+          <option value="25" [selected]="registrosPorPagina() === 25">25</option>
+          <option value="50" [selected]="registrosPorPagina() === 50">50</option>
+        </select>
+        <span>registros por página</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span>Página {{ paginaActual() }} de {{ totalPaginas() }}</span>
+        <div style="display: flex; gap: 6px;">
+          <button type="button" class="btn btn-secundario btn-pequeno" [disabled]="paginaActual() === 1" (click)="cambiarPagina(paginaActual() - 1)">
+            Anterior
+          </button>
+          <button type="button" class="btn btn-secundario btn-pequeno" [disabled]="paginaActual() === totalPaginas()" (click)="cambiarPagina(paginaActual() + 1)">
+            Siguiente
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 }

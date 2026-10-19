@@ -10,6 +10,11 @@ import {
   InspeccionDetalle,
   RespuestaLogin,
   ResumenOrdenes,
+  Equipo,
+  DatosEquipo,
+  Tecnico,
+  DatosTecnico,
+  OrdenTecnico,
 } from './modelos';
 
 /** Todas las llamadas del portal a la API de TecnoMant. */
@@ -49,5 +54,56 @@ export class ApiService {
 
   eliminarCliente(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/api/clientes/${id}`);
+  }
+
+  // ==================== EQUIPOS ====================
+
+  /** Lista todos los equipos registrados. */
+  obtenerEquipos(): Observable<Equipo[]> {
+    return this.http.get<Equipo[]>(`${this.base}/api/equipos`);
+  }
+
+  /** Obtiene un equipo por su ID. */
+  obtenerEquipo(id: number): Observable<Equipo> {
+    return this.http.get<Equipo>(`${this.base}/api/equipos/${id}`);
+  }
+
+  /** Crea un nuevo equipo. */
+  crearEquipo(datos: DatosEquipo): Observable<number> {
+    return this.http.post<number>(`${this.base}/api/equipos`, datos);
+  }
+
+  /** Actualiza un equipo existente. */
+  actualizarEquipo(id: number, datos: DatosEquipo): Observable<void> {
+    return this.http.put<void>(`${this.base}/apiequipos/${id}`, datos);
+  }
+
+  /** Elimina un equipo por su ID. */
+  eliminarEquipo(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/api/equipos/${id}`);
+  }
+
+  obtenerTecnicos(): Observable<Tecnico[]> {
+    return this.http.get<Tecnico[]>(`${this.base}/api/tecnicos`);
+  }
+
+  crearTecnico(datos: DatosTecnico): Observable<number> {
+    return this.http.post<number>(`${this.base}/api/tecnicos`, datos);
+  }
+
+  actualizarTecnico(id: number, datos: DatosTecnico): Observable<void> {
+    return this.http.put<void>(`${this.base}/api/tecnicos/${id}`, datos);
+  }
+
+  eliminarTecnico(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/api/tecnicos/${id}`);
+  }
+
+  obtenerOrdenesDelTecnico(idTecnico: number): Observable<OrdenTecnico[]> {
+    return this.http.get<OrdenTecnico[]>(`${this.base}/api/ordenes/tecnico/${idTecnico}`);
+  }
+
+  obtenerResumenOrdenes(): Observable<ResumenOrdenes> {
+    return this.http.get<ResumenOrdenes>(`${this.base}/api/ordenes/resumen`);
   }
 }

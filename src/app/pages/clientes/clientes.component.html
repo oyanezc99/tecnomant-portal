@@ -1,13 +1,19 @@
-<div class="barra-acciones">
-  <input
-    #buscador
-    type="search"
-    class="control clientes-buscar"
-    placeholder="Buscar cliente"
-    aria-label="Buscar cliente"
-    (input)="busqueda.set(buscador.value)"
-    data-testid="clientes-buscar"
-  />
+<div class="barra-acciones" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+  <div style="display: flex; gap: 12px; align-items: center; flex: 1; min-width: 280px;">
+    <input
+      #buscador
+      type="search"
+      class="control clientes-buscar"
+      placeholder="Buscar cliente"
+      aria-label="Buscar cliente"
+      (input)="cambiarBusqueda(buscador.value)"
+      data-testid="clientes-buscar"
+      style="flex: 1;"
+    />
+    <button type="button" class="btn btn-secundario" (click)="exportarCSV()" data-testid="clientes-exportar" title="Exportar listado actual a CSV">
+      📥 Exportar CSV
+    </button>
+  </div>
   <button type="button" class="btn" (click)="abrirModal()" data-testid="clientes-nuevo">+ Nuevo cliente</button>
 </div>
 
@@ -37,7 +43,7 @@
         <tbody app-filas-esqueleto [filas]="5" [columnas]="5"></tbody>
       } @else {
         <tbody>
-          @for (cliente of filtrados(); track cliente.idCliente) {
+          @for (cliente of clientesPaginados(); track cliente.idCliente) {
             <tr [attr.data-testid]="'clientes-fila-' + cliente.idCliente">
               <td>{{ cliente.idCliente }}</td>
               <td>{{ cliente.razonSocial }}</td>
@@ -68,6 +74,31 @@
         </tbody>
       }
     </table>
+
+    <!-- Controles de Paginación Inferior -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-top: 1px solid var(--color-borde); flex-wrap: wrap; gap: 12px; font-size: 0.9rem; color: var(--color-texto-suave);">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span>Mostrar:</span>
+        <select class="control" (change)="cambiarRegistrosPorPagina($event)" style="width: 80px; padding: 4px 8px;">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+        </select>
+        <span>registros por página</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span>Página {{ paginaActual() }} de {{ totalPaginas() }}</span>
+        <div style="display: flex; gap: 6px;">
+          <button type="button" class="btn btn-secundario btn-pequeno" [disabled]="paginaActual() === 1" (click)="cambiarPagina(paginaActual() - 1)">
+            Anterior
+          </button>
+          <button type="button" class="btn btn-secundario btn-pequeno" [disabled]="paginaActual() === totalPaginas()" (click)="cambiarPagina(paginaActual() + 1)">
+            Siguiente
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 }
 
@@ -95,8 +126,18 @@
         />
       </label>
       <label class="campo">
-        Contacto
-        <input class="control" name="contacto" [(ngModel)]="formulario.contacto" data-testid="clientes-contacto" />
+        Contacto (Teléfono / Celular)
+        <input
+          class="control"
+          [class.invalido]="invalidos().contacto"
+          name="contacto"
+          [(ngModel)]="formulario.contacto"
+          data-testid="clientes-contacto"
+          placeholder="Ej. 999000111"
+        />
+        @if (invalidos().contacto) {
+          <small style="color: #dc2626; font-size: 0.8rem; margin-top: 4px;">{{ mensajeContactoInvalido() }}</small>
+        }
       </label>
       <div class="formulario-botones">
         <button type="button" class="btn btn-secundario" (click)="modalAbierto.set(false)" data-testid="clientes-cancelar">

@@ -9,7 +9,7 @@ import { ErrorConexionComponent } from '../../shared/error-conexion/error-conexi
 import { FilasEsqueletoComponent } from '../../shared/filas-esqueleto/filas-esqueleto.component';
 import { ModalComponent } from '../../shared/modal/modal.component';
 
-/** Mantenimiento de clientes: listar, buscar, crear, editar y eliminar. */
+/** Mantenimiento de clientes: listar, buscar, paginar, exportar, crear, editar y eliminar. */
 @Component({
   selector: 'app-clientes',
   standalone: true,
@@ -27,7 +27,11 @@ export class ClientesComponent implements OnInit {
   readonly errorCarga = signal<string | null>(null);
   readonly busqueda = signal('');
 
-  /** Filtra en pantalla por razón social, dirección y contacto, sin distinguir mayúsculas (A4). */
+  // Paginación
+  readonly paginaActual = signal(1);
+  readonly registrosPorPagina = signal(10);
+
+  /** Filtra en pantalla por razón social, dirección y contacto. */
   readonly filtrados = computed(() => {
     const texto = this.busqueda().trim().toLowerCase();
     return this.clientes().filter((cliente) =>
@@ -37,13 +41,24 @@ export class ClientesComponent implements OnInit {
     );
   });
 
+  /** Clientes paginados según la página actual y el tamaño de página seleccionado. */
+  readonly clientesPaginados = computed(() => {
+    const inicio = (this.paginaActual() - 1) * this.registrosPorPagina();
+    return this.filtrados().slice(inicio, inicio + this.registrosPorPagina());
+  });
+
+  readonly totalPaginas = computed(() => {
+    return Math.max(1, Math.ceil(this.filtrados().length / this.registrosPorPagina()));
+  });
+
   // Modal de nuevo cliente y de edición.
   readonly modalAbierto = signal(false);
-  /** Cliente que se está editando, o `null` si el modal es de alta. */
   readonly enEdicion = signal<Cliente | null>(null);
   formulario = { razonSocial: '', direccion: '', contacto: '' };
-  /** Campos obligatorios que se marcan en rojo. */
-  readonly invalidos = signal({ razonSocial: false, direccion: false });
+  
+  /** Campos obligatorios e inválidos con validador de Regex para contacto. */
+  readonly invalidos = signal({ razonSocial: false, direccion: false, contacto: false });
+  readonly mensajeContactoInvalido = signal('');
   readonly guardando = signal(false);
 
   // Confirmación de eliminar.
@@ -72,7 +87,51 @@ export class ClientesComponent implements OnInit {
     });
   }
 
-  /** Abre el modal vacío (nuevo cliente) o con los datos del cliente a editar. */
+  cambiarBusqueda(valor: string): void {
+    this.busqueda.set(valor);
+    this.paginaActual.set(1); // Reiniciar a la primera página al buscar
+  }
+
+  cambiarRegistrosPorPagina(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.registrosPorPagina.set(Number(select.value));
+    this.paginaActual.set(1);
+  }
+
+  cambiarPagina(nuevaPagina: number): void {
+    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginas()) {
+      this.paginaActual.set(nuevaPagina);
+    }
+  }
+
+  /** Exporta la lista filtrada actual a un archivo CSV descargable */
+  exportarCSV(): void {
+    const datos = this.filtrados();
+    if (datos.length === 0) {
+      this.toast.mostrar('No hay datos para exportar.');
+      return;
+    }
+
+    const encabezados = ['Id', 'Razon Social', 'Direccion', 'Contacto'];
+    const filas = datos.map((c) => [
+      c.idCliente,
+      `"${(c.razonSocial || '').replace(/"/g, '""')}"`,
+      `"${(c.direccion || '').replace(/"/g, '""')}"`,
+      `"${(c.contacto || '').replace(/"/g, '""')}"`,
+    ]);
+
+    const csvContent = [encabezados.join(','), ...filas.map((e) => e.join(','))].join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const enlace = document.createElement('a');
+    enlace.setAttribute('href', url);
+    enlace.setAttribute('download', `reporte_clientes_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(enlace);
+    enlace.click();
+    document.body.removeChild(enlace);
+  }
+
   abrirModal(cliente: Cliente | null = null): void {
     this.enEdicion.set(cliente);
     this.formulario = {
@@ -80,25 +139,42 @@ export class ClientesComponent implements OnInit {
       direccion: cliente?.direccion ?? '',
       contacto: cliente?.contacto ?? '',
     };
-    this.invalidos.set({ razonSocial: false, direccion: false });
+    this.invalidos.set({ razonSocial: false, direccion: false, contacto: false });
+    this.mensajeContactoInvalido.set('');
     this.modalAbierto.set(true);
   }
 
   guardar(): void {
-    const datos: DatosCliente = {
-      razonSocial: this.formulario.razonSocial.trim(),
-      direccion: this.formulario.direccion.trim(),
-      contacto: this.formulario.contacto.trim(),
+    const razonSocial = this.formulario.razonSocial.trim();
+    const direccion = this.formulario.direccion.trim();
+    const contacto = this.formulario.contacto.trim();
+
+    // Regex para validar teléfono / contacto (permite números, espacios, +, -, y paréntesis, de 7 a 15 dígitos)
+    const regexTelefono = /^$\vert{}^[\+]?[(]?\d{3}[)]?[-\s\.]?\d{3}[-\s\.]?\d{4,6}$/;
+    const contactoInvalido = contacto !== '' && !regexTelefono.test(contacto);
+
+    if (contactoInvalido) {
+      this.mensajeContactoInvalido.set('Formato de teléfono o contacto inválido.');
+    } else {
+      this.mensajeContactoInvalido.set('');
+    }
+
+    const invalidos = {
+      razonSocial: razonSocial === '',
+      direccion: direccion === '',
+      contacto: contactoInvalido,
     };
-    // Un obligatorio vacío o con solo espacios se marca en rojo y no se envía nada (FR4.5, A5).
-    const invalidos = { razonSocial: datos.razonSocial === '', direccion: datos.direccion === '' };
+
     this.invalidos.set(invalidos);
-    if (invalidos.razonSocial || invalidos.direccion || this.guardando()) {
+
+    if (invalidos.razonSocial || invalidos.direccion || invalidos.contacto || this.guardando()) {
       return;
     }
 
+    const datos: DatosCliente = { razonSocial, direccion, contacto };
     const editado = this.enEdicion();
     const llamada = editado ? this.api.editarCliente(editado.idCliente, datos) : this.api.crearCliente(datos);
+    
     this.guardando.set(true);
     llamada.subscribe({
       next: (guardado) => {
@@ -111,7 +187,6 @@ export class ClientesComponent implements OnInit {
         this.modalAbierto.set(false);
       },
       error: (error: unknown) => {
-        // El modal queda abierto para corregir o volver a intentar (A9).
         this.guardando.set(false);
         this.toast.mostrar(mensajeDeError(error));
       },
@@ -131,7 +206,6 @@ export class ClientesComponent implements OnInit {
         this.porEliminar.set(null);
       },
       error: (error: unknown) => {
-        // El cliente sigue en la tabla. Sin conexión, la confirmación queda abierta para reintentar (A9).
         this.eliminando.set(false);
         if (!esErrorDeConexion(error)) {
           this.porEliminar.set(null);

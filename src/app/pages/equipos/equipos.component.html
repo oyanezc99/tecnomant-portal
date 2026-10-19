@@ -1,0 +1,207 @@
+<div class="barra-acciones" style="display: flex; flex-direction: column; gap: 12px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
+    <input
+      #buscador
+      type="search"
+      class="control"
+      placeholder="Buscar por tipo, código, ubicación o cliente..."
+      aria-label="Buscar equipo"
+      [(ngModel)]="filtroTexto"
+      (input)="actualizarFiltros()"
+      style="flex: 1; min-width: 250px;"
+    />
+    <div style="display: flex; gap: 8px;">
+      <button type="button" class="btn btn-secundario" (click)="exportarCSV()">📥 Exportar CSV</button>
+      <button type="button" class="btn" (click)="abrirModalCrear()">+ Nuevo equipo</button>
+    </div>
+  </div>
+
+  <!-- Filtros avanzados desplegables -->
+  <div style="display: flex; gap: 12px; flex-wrap: wrap; width: 100%;">
+    <select class="control" [(ngModel)]="filtroTipo" (change)="actualizarFiltros()" style="flex: 1; min-width: 200px;">
+      <option value="">Todos los tipos de equipos</option>
+      @for (t of tiposDisponibles; track t) {
+        <option [value]="t">{{ t }}</option>
+      }
+    </select>
+
+    <select class="control" [(ngModel)]="filtroCliente" (change)="actualizarFiltros()" style="flex: 1; min-width: 200px;">
+      <option value="">Todos los clientes</option>
+      @for (c of clientes; track c.idCliente) {
+        <option [value]="c.idCliente">{{ c.razonSocial }}</option>
+      }
+    </select>
+  </div>
+</div>
+
+@if (cargando) {
+  <div class="tarjeta estado-vacio">
+    <p>Cargando equipos...</p>
+  </div>
+} @else if (equiposFiltrados.length === 0) {
+  <div class="tarjeta estado-vacio">
+    <p>No se encontraron equipos registrados.</p>
+  </div>
+} @else {
+  <div class="tarjeta tabla-contenedor">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Tipo</th>
+          <th>Código / Serie</th>
+          <th>Ubicación</th>
+          <th>Cliente</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (eq of equiposPaginados; track eq.idEquipo) {
+          <tr (click)="abrirHistorial(eq)" style="cursor: pointer;" title="Haz clic para ver el historial de órdenes e inspecciones">
+            <td>{{ eq.idEquipo }}</td>
+            <td><strong>{{ eq.tipo }}</strong></td>
+            <td><code>{{ eq.codigoSerie }}</code></td>
+            <td>{{ eq.ubicacion }}</td>
+            <td>{{ eq.clienteRazonSocial || 'N/A' }}</td>
+            <td>
+              <div class="acciones">
+                <button type="button" class="btn btn-secundario btn-pequeno" (click)="abrirModalEditar(eq, $event)">
+                  Editar
+                </button>
+                <button type="button" class="btn btn-peligro btn-pequeno" (click)="eliminar(eq.idEquipo, $event)">
+                  Eliminar
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <!-- Controles de Paginación -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-top: 1px solid var(--color-borde); flex-wrap: wrap; gap: 12px; font-size: 0.9rem; color: var(--color-texto-suave);">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span>Mostrar:</span>
+        <select class="control" (change)="cambiarRegistrosPorPagina($event)" style="width: 80px; padding: 4px 8px;">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+        </select>
+        <span>registros por página</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+        <div style="display: flex; gap: 6px;">
+          <button type="button" class="btn btn-secundario btn-pequeno" [disabled]="paginaActual === 1" (click)="cambiarPagina(paginaActual - 1)">
+            Anterior
+          </button>
+          <button type="button" class="btn btn-secundario btn-pequeno" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(paginaActual + 1)">
+            Siguiente
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal de Historial de Órdenes e Inspecciones -->
+@if (modalHistorialAbierto && equipoSeleccionado) {
+  <app-modal [titulo]="'Historial del equipo: ' + equipoSeleccionado.tipo + ' (' + equipoSeleccionado.codigoSerie + ')'" (cerrar)="cerrarHistorial()">
+    <div style="display: flex; flex-direction: column; gap: 16px; max-height: 60vh; overflow-y: auto;">
+      @if (cargandoHistorial) {
+        <p>Cargando historial...</p>
+      } @else {
+        <div>
+          <h3 style="font-size: 1rem; margin-bottom: 8px; color: var(--color-principal);">Órdenes de Trabajo Asociadas</h3>
+          @if (historialOrdenes.length === 0) {
+            <p style="font-size: 0.9rem; color: var(--color-texto-suave);">No hay órdenes registradas para este equipo.</p>
+          } @else {
+            <table class="tabla" style="font-size: 0.85rem;">
+              <thead>
+                <tr>
+                  <th>Id</th>
+                  <th>Fecha Programada</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (o of historialOrdenes; track o.idOrden) {
+                  <tr>
+                    <td>{{ o.idOrden }}</td>
+                    <td>{{ o.fechaProgramada }}</td>
+                    <td>{{ o.estado }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+
+        <div>
+          <h3 style="font-size: 1rem; margin-bottom: 8px; color: var(--color-principal);">Inspecciones Realizadas</h3>
+          @if (historialInspecciones.length === 0) {
+            <p style="font-size: 0.9rem; color: var(--color-texto-suave);">No hay inspecciones registradas para este equipo.</p>
+          } @else {
+            <table class="tabla" style="font-size: 0.85rem;">
+              <thead>
+                <tr>
+                  <th>Id</th>
+                  <th>Fecha Real</th>
+                  <th>Técnico</th>
+                  <th>Estado General</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (i of historialInspecciones; track i.idInspeccion) {
+                  <tr>
+                    <td>{{ i.idInspeccion }}</td>
+                    <td>{{ i.fechaHoraReal }}</td>
+                    <td>{{ i.tecnico }}</td>
+                    <td>{{ i.estadoGeneral }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      }
+    </div>
+  </app-modal>
+}
+
+<!-- Modal Crear / Editar -->
+@if (modalAbierto) {
+  <app-modal [titulo]="editando ? 'Editar equipo' : 'Nuevo equipo'" (cerrar)="cerrarModal()">
+    <div class="formulario">
+      <label class="campo">
+        Cliente *
+        <select class="control" [(ngModel)]="formulario.idCliente">
+          @for (c of clientes; track c.idCliente) {
+            <option [value]="c.idCliente">{{ c.razonSocial }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="campo">
+        Tipo de equipo *
+        <input class="control" [(ngModel)]="formulario.tipo" placeholder="Ej. Ascensor, Aire acondicionado" />
+      </label>
+
+      <label class="campo">
+        Código o Serie *
+        <input class="control" [(ngModel)]="formulario.codigoSerie" placeholder="Ej. ASC-001" />
+      </label>
+
+      <label class="campo">
+        Ubicación *
+        <input class="control" [(ngModel)]="formulario.ubicacion" placeholder="Ej. Torre A, Sótano 2" />
+      </label>
+
+      <div class="formulario-botones">
+        <button type="button" class="btn btn-secundario" (click)="cerrarModal()">Cancelar</button>
+        <button type="button" class="btn" (click)="guardar()">Guardar</button>
+      </div>
+    </div>
+  </app-modal>
+}

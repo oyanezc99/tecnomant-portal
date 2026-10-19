@@ -341,3 +341,10 @@ select {
     transition: none !important;
   }
 }
+
+/* Contenedor unificado para botones de acción en tablas */
+.acciones {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}

@@ -14,9 +14,9 @@ interface OpcionMenu {
 const OPCIONES: OpcionMenu[] = [
   { id: 'dashboard', etiqueta: 'Dashboard', ruta: '/dashboard' },
   { id: 'clientes', etiqueta: 'Clientes', ruta: '/clientes' },
-  { id: 'equipos', etiqueta: 'Equipos', ruta: null },
-  { id: 'tecnicos', etiqueta: 'Técnicos', ruta: null },
-  { id: 'ordenes', etiqueta: 'Órdenes', ruta: null },
+  { id: 'equipos', etiqueta: 'Equipos', ruta: '/equipos' },
+  { id: 'tecnicos', etiqueta: 'Técnicos', ruta: '/tecnicos' },
+  { id: 'ordenes', etiqueta: 'Órdenes', ruta: '/ordenes' },
   { id: 'inspecciones', etiqueta: 'Inspecciones', ruta: '/inspecciones' },
 ];
 

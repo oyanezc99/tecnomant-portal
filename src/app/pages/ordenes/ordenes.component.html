@@ -1,0 +1,236 @@
+<div class="resumen">
+  <div class="tarjeta resumen-tarjeta resumen-pendientes">
+    <h3>Pendientes</h3>
+    <span class="resumen-numero">{{ resumen.pendientes }}</span>
+  </div>
+  <div class="tarjeta resumen-tarjeta resumen-en-proceso">
+    <h3>En proceso</h3>
+    <span class="resumen-numero">{{ resumen.enProceso }}</span>
+  </div>
+  <div class="tarjeta resumen-tarjeta resumen-completadas">
+    <h3>Completadas</h3>
+    <span class="resumen-numero">{{ resumen.completadas }}</span>
+  </div>
+</div>
+
+<!-- Barra de Acciones y Filtros Avanzados Multicriterio -->
+<div class="barra-acciones" style="margin-top: 1.5rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 12px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
+    <input 
+      type="search" 
+      class="control" 
+      placeholder="Buscar por cliente, equipo o ubicación..." 
+      [(ngModel)]="filtroTexto"
+      (input)="actualizarFiltros()"
+      style="flex: 1; min-width: 250px;"
+    />
+    <div style="display: flex; gap: 8px;">
+      <button type="button" class="btn btn-secundario" (click)="limpiarFiltros()">🧹 Limpiar filtros</button>
+      <button type="button" class="btn btn-secundario" (click)="exportarCSV()">📥 Exportar CSV</button>
+      <button type="button" class="btn btn-secundario" (click)="vistaCalendario = !vistaCalendario">
+        {{ vistaCalendario ? '📋 Ver Tabla' : '📅 Ver Calendario' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros secundarios combinados -->
+  <div style="display: flex; gap: 12px; flex-wrap: wrap; width: 100%;">
+    <select class="control" [(ngModel)]="filtroTecnico" (change)="onCambioTecnicoCombo(filtroTecnico)" style="flex: 1; min-width: 180px;">
+      <option value="">Todos los técnicos</option>
+      @for (t of tecnicos; track t.idTecnico) {
+        <option [value]="t.idTecnico">{{ t.nombre }}</option>
+      }
+    </select>
+
+    <select class="control" [(ngModel)]="filtroEstado" (change)="actualizarFiltros()" style="flex: 1; min-width: 150px;">
+      <option value="">Todos los estados</option>
+      <option value="Pendiente">Pendiente</option>
+      <option value="En proceso">En proceso</option>
+      <option value="Completada">Completada</option>
+    </select>
+
+    <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 220px;">
+      <span style="font-size: 0.85rem; color: var(--color-texto-suave);">Desde:</span>
+      <input type="date" class="control" [(ngModel)]="filtroFechaDesde" (change)="actualizarFiltros()" />
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 220px;">
+      <span style="font-size: 0.85rem; color: var(--color-texto-suave);">Hasta:</span>
+      <input type="date" class="control" [(ngModel)]="filtroFechaHasta" (change)="actualizarFiltros()" />
+    </div>
+  </div>
+</div>
+
+@if (cargando) {
+  <div class="tarjeta estado-vacio">
+    <p>Cargando órdenes de trabajo...</p>
+  </div>
+} @else if (ordenesFiltradas.length === 0 && !vistaCalendario) {
+  <div class="tarjeta estado-vacio">
+    <p>No se encontraron órdenes con los filtros seleccionados.</p>
+  </div>
+} @else {
+  @if (!vistaCalendario) {
+    <!-- Vista de Tabla con Paginación -->
+    <div class="tarjeta tabla-contenedor">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Cliente</th>
+            <th>Equipo</th>
+            <th>Ubicación</th>
+            <th>Fecha Programada</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ord of ordenesPaginadas; track ord.idOrden) {
+            <tr (click)="abrirDetalleOrden(ord)" style="cursor: pointer;" title="Haz clic para ver el detalle completo de la orden">
+              <td>{{ ord.idOrden }}</td>
+              <td>
+                <strong>{{ ord.cliente }}</strong><br>
+                <small style="color: #666;">{{ ord.direccion }}</small>
+              </td>
+              <td>
+                {{ ord.equipoTipo }}<br>
+                <small style="color: #666;">{{ ord.equipoCodigo }}</small>
+              </td>
+              <td>{{ ord.ubicacion || 'N/A' }}</td>
+              <td>{{ ord.fechaProgramada | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <span class="badge" [style.background]="ord.estado === 'Pendiente' ? '#d97706' : ord.estado === 'En proceso' ? '#2563eb' : '#16a34a'" style="padding: 0.25rem 0.5rem; border-radius: 4px; color: #fff; font-size: 0.85rem; font-weight: 600;">
+                  {{ ord.estado }}
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- Controles de Paginación -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-top: 1px solid var(--color-borde); flex-wrap: wrap; gap: 12px; font-size: 0.9rem; color: var(--color-texto-suave);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>Mostrar:</span>
+          <select class="control" (change)="cambiarRegistrosPorPagina($event)" style="width: 80px; padding: 4px 8px;">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+          <span>registros por página</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+          <div style="display: flex; gap: 6px;">
+            <button type="button" class="btn btn-secundario btn-pequeno" [disabled]="paginaActual === 1" (click)="cambiarPagina(paginaActual - 1)">
+              Anterior
+            </button>
+            <button type="button" class="btn btn-secundario btn-pequeno" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(paginaActual + 1)">
+              Siguiente
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Vista de Calendario Mensual Estilo Outlook -->
+    <div class="tarjeta" style="padding: 20px;">
+      <!-- Cabecera de Navegación del Mes -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--color-principal); margin: 0;">{{ nombreMesAnio }}</h3>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn btn-secundario btn-pequeno" (click)="cambiarMes(-1)">◀ Mes anterior</button>
+          <button type="button" class="btn btn-secundario btn-pequeno" (click)="irAHoy()">Hoy</button>
+          <button type="button" class="btn btn-secundario btn-pequeno" (click)="cambiarMes(1)">Mes siguiente ▶</button>
+        </div>
+      </div>
+
+      <!-- Cuadrícula del Calendario (Lunes a Domingo) -->
+      <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--color-borde); border: 1px solid var(--color-borde); border-radius: 8px; overflow: hidden;">
+        
+        <!-- Cabecera de Días de la Semana -->
+        @for (dia of diasSemana; track dia) {
+          <div style="background: #f8fafc; padding: 10px; text-align: center; font-weight: 600; font-size: 0.85rem; color: var(--color-texto-suave);">
+            {{ dia }}
+          </div>
+        }
+
+        <!-- Celdas de los Días del Mes -->
+        @for (celda of celdasCalendario; track $index) {
+          <div style="background: #fff; min-height: 120px; padding: 8px; display: flex; flex-direction: column; gap: 6px;" [style.background-color]="celda.esHoy ? '#f0fdf4' : '#fff'">
+            @if (celda.numeroDia !== null) {
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 600; font-size: 0.85rem;" [style.color]="celda.esHoy ? '#16a34a' : 'inherit'">
+                  {{ celda.numeroDia }}
+                </span>
+                @if (celda.ordenes.length > 0) {
+                  <span style="font-size: 0.7rem; background: var(--color-principal-suave, #e2e8f0); padding: 1px 5px; border-radius: 10px; font-weight: 600;">
+                    {{ celda.ordenes.length }}
+                  </span>
+                }
+              </div>
+
+              <!-- Lista de Órdenes en el Día (Clickeables) -->
+              <div style="display: flex; flex-direction: column; gap: 4px; overflow-y: auto; max-height: 90px;">
+                @for (ord of celda.ordenes; track ord.idOrden) {
+                  <div 
+                    (click)="abrirDetalleOrden(ord)"
+                    style="font-size: 0.75rem; padding: 4px 6px; border-radius: 4px; background: #f1f5f9; border-left: 3px solid #3b82f6; cursor: pointer; transition: background 0.2s;"
+                    [style.border-left-color]="ord.estado === 'Pendiente' ? '#d97706' : ord.estado === 'En proceso' ? '#2563eb' : '#16a34a'"
+                    title="Haz clic para ver detalles"
+                  >
+                    <div style="font-weight: 600; color: #1e293b;">#{{ ord.idOrden }} - {{ ord.cliente }}</div>
+                    <div style="color: #64748b; font-size: 0.7rem;">{{ ord.equipoTipo }}</div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+}
+
+<!-- Modal de Detalle de Orden -->
+@if (modalDetalleAbierto && ordenSeleccionada) {
+  <app-modal [titulo]="'Detalle de Orden de Trabajo #' + ordenSeleccionada.idOrden" (cerrar)="cerrarDetalleOrden()">
+    <div style="display: flex; flex-direction: column; gap: 16px; font-size: 0.95rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid var(--color-borde);">
+        <div>
+          <span style="font-size: 0.8rem; color: #64748b; display: block;">Estado actual</span>
+          <span class="badge" [style.background]="ordenSeleccionada.estado === 'Pendiente' ? '#d97706' : ordenSeleccionada.estado === 'En proceso' ? '#2563eb' : '#16a34a'" style="padding: 0.25rem 0.5rem; border-radius: 4px; color: #fff; font-size: 0.85rem; font-weight: 600; display: inline-block; margin-top: 4px;">
+            {{ ordenSeleccionada.estado }}
+          </span>
+        </div>
+        <div style="text-align: right;">
+          <span style="font-size: 0.8rem; color: #64748b; display: block;">Fecha Programada</span>
+          <strong style="color: #1e293b; margin-top: 4px; display: block;">{{ ordenSeleccionada.fechaProgramada | date:'dd/MM/yyyy' }}</strong>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <h4 style="font-size: 1rem; color: var(--color-principal); margin: 0; border-bottom: 1px solid var(--color-borde); padding-bottom: 4px;">Técnico Asignado</h4>
+        <p style="margin: 0; font-weight: 600; color: #1e293b;">👤 {{ nombreTecnicoSeleccionado }}</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <h4 style="font-size: 1rem; color: var(--color-principal); margin: 0; border-bottom: 1px solid var(--color-borde); padding-bottom: 4px;">Información del Cliente</h4>
+        <p style="margin: 0;"><strong>Razón Social:</strong> {{ ordenSeleccionada.cliente }}</p>
+        <p style="margin: 0; color: #64748b;"><strong>Dirección:</strong> {{ ordenSeleccionada.direccion }}</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <h4 style="font-size: 1rem; color: var(--color-principal); margin: 0; border-bottom: 1px solid var(--color-borde); padding-bottom: 4px;">Información del Activo / Equipo</h4>
+        <p style="margin: 0;"><strong>Tipo de Equipo:</strong> {{ ordenSeleccionada.equipoTipo }}</p>
+        <p style="margin: 0;"><strong>Código / Serie:</strong> <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ ordenSeleccionada.equipoCodigo }}</code></p>
+        <p style="margin: 0; color: #64748b;"><strong>Ubicación específica:</strong> {{ ordenSeleccionada.ubicacion || 'N/A' }}</p>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+        <button type="button" class="btn btn-secundario" (click)="cerrarDetalleOrden()">Cerrar</button>
+      </div>
+    </div>
+  </app-modal>
+}
