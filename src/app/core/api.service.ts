@@ -15,6 +15,8 @@ import {
   Tecnico,
   DatosTecnico,
   OrdenTecnico,
+  OrdenAdministrativa,
+  DatosOrden,
 } from './modelos';
 
 /** Todas las llamadas del portal a la API de TecnoMant. */
@@ -32,8 +34,8 @@ export class ApiService {
   }
 
   /** Listado de inspecciones, la más reciente primero. */
-  inspecciones(): Observable<Inspeccion[]> {
-    return this.http.get<Inspeccion[]>(`${this.base}/api/inspecciones`);
+  inspecciones(idEquipo?: number): Observable<Inspeccion[]> {
+    return this.http.get<Inspeccion[]>(`${this.base}/api/inspecciones`, { params: idEquipo == null ? {} : { idEquipo } });
   }
 
   inspeccion(id: number): Observable<InspeccionDetalle> {
@@ -75,7 +77,7 @@ export class ApiService {
 
   /** Actualiza un equipo existente. */
   actualizarEquipo(id: number, datos: DatosEquipo): Observable<void> {
-    return this.http.put<void>(`${this.base}/apiequipos/${id}`, datos);
+    return this.http.put<void>(`${this.base}/api/equipos/${id}`, datos);
   }
 
   /** Elimina un equipo por su ID. */
@@ -103,6 +105,18 @@ export class ApiService {
     return this.http.get<OrdenTecnico[]>(`${this.base}/api/ordenes/tecnico/${idTecnico}`);
   }
 
+  ordenes(idEquipo?: number): Observable<OrdenAdministrativa[]> {
+    return this.http.get<OrdenAdministrativa[]>(this.base + '/api/ordenes', { params: idEquipo == null ? {} : { idEquipo } });
+  }
+  crearOrden(datos: DatosOrden): Observable<{ idOrden: number }> {
+    return this.http.post<{ idOrden: number }>(this.base + '/api/ordenes', datos);
+  }
+  editarOrden(id: number, datos: DatosOrden): Observable<void> {
+    return this.http.put<void>(this.base + '/api/ordenes/' + id, datos);
+  }
+  eliminarOrden(id: number): Observable<void> {
+    return this.http.delete<void>(this.base + '/api/ordenes/' + id);
+  }
   obtenerResumenOrdenes(): Observable<ResumenOrdenes> {
     return this.http.get<ResumenOrdenes>(`${this.base}/api/ordenes/resumen`);
   }

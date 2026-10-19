@@ -97,4 +97,44 @@ describe('DashboardComponent', () => {
     expect(numero('pendientes')).toBe('4');
     expect(buscarTodos(raiz, 'dashboard-fila').length).toBe(5);
   });
+
+  it('cuenta Bien, Regular y Malo como realizadas y usa todas las inspecciones, no solo las últimas cinco', () => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date(2026, 9, 19, 12));
+    try {
+      api.inspecciones.and.returnValue(of(INSPECCIONES.map((inspeccion, indice) => ({
+        ...inspeccion,
+        fechaHoraReal: '2026-10-18T10:30:00',
+        estadoGeneral: (['Bien', 'Regular', 'Malo'] as const)[indice % 3],
+      }))));
+      crear();
+      const dias = fixture.componentInstance.rendimientoMensual();
+      expect(dias[17].completadas).toBe(INSPECCIONES.length);
+      expect(dias.reduce((total, dia) => total + dia.completadas, 0)).toBe(INSPECCIONES.length);
+      expect(buscarTodos(raiz, 'dashboard-fila').length).toBe(5);
+      const barras = raiz.querySelectorAll('[data-dia="18"] rect');
+      expect(Number(barras[1].getAttribute('height'))).toBe(95);
+      expect(Number(raiz.querySelector('[data-dia="1"] rect:last-of-type')?.getAttribute('height'))).toBe(0);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('excluye fechas inválidas, otros meses y otros años del conteo mensual', () => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date(2026, 9, 19, 12));
+    try {
+      const fechas = ['2026-10-01T09:00:00', '2026-10-31T18:00:00', '2026-09-30T10:00:00', '2025-10-19T12:00:00', 'invalida', ''];
+      api.inspecciones.and.returnValue(of(INSPECCIONES.map((inspeccion, indice) => ({ ...inspeccion, fechaHoraReal: fechas[indice] }))));
+      crear();
+      const dias = fixture.componentInstance.rendimientoMensual();
+      expect(dias.length).toBe(31);
+      expect(dias[0].completadas).toBe(1);
+      expect(dias[30].completadas).toBe(1);
+      expect(dias.reduce((total, dia) => total + dia.completadas, 0)).toBe(2);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
 });

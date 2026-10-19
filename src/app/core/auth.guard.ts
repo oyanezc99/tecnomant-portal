@@ -5,7 +5,7 @@ import { SesionService } from './sesion.service';
 
 /**
  * Sin sesión guardada, envía a `/login`.
- * Es solo una protección de navegación: la API del avance no pide token (C5).
+ * La navegación exige rol admin; la API verifica el token en cada petición.
  */
 export const authGuard: CanActivateFn = () =>
-  inject(SesionService).leer() ? true : inject(Router).createUrlTree(['/login']);
+  inject(SesionService).leer()?.rol === 'admin' ? true : inject(Router).createUrlTree(['/login']);

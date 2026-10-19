@@ -44,7 +44,7 @@ export class LoginComponent {
           return;
         }
         // Solo se guardan el rol y el nombre; la clave nunca sale de este formulario (NFR1).
-        this.sesion.guardar({ rol: respuesta.rol, nombre: respuesta.nombre });
+        this.sesion.guardar({ rol: respuesta.rol, nombre: respuesta.nombre, token: respuesta.token });
         this.router.navigate(['/dashboard']);
       },
       error: (error: unknown) => {

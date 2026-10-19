@@ -27,23 +27,13 @@ describe('LayoutComponent', () => {
     expect(buscar(raiz, 'layout-usuario').textContent).toContain('Administrador');
   });
 
-  it('el menú está en el orden pedido, con Equipos, Técnicos y Órdenes desactivados y con "Próximamente" (FR2.2, FR2.3)', () => {
-    const etiquetas = Array.from(raiz.querySelectorAll('.menu-etiqueta')).map((etiqueta) => etiqueta.textContent);
+  it('el menú incluye los módulos habilitados en el orden acordado', () => {
+    const etiquetas = Array.from(raiz.querySelectorAll('.menu-etiqueta')).map(e=>e.textContent);
     expect(etiquetas).toEqual(['Dashboard', 'Clientes', 'Equipos', 'Técnicos', 'Órdenes', 'Inspecciones']);
-
-    const navegar = spyOn(router, 'navigateByUrl');
-    for (const id of ['equipos', 'tecnicos', 'ordenes']) {
-      const opcion = buscar(raiz, 'menu-' + id);
-      expect(opcion.tagName).not.toBe('A');
-      expect(opcion.getAttribute('aria-disabled')).toBe('true');
-      expect(opcion.textContent).toContain('Próximamente');
-      opcion.click();
+    for(const id of ['clientes','equipos','tecnicos','ordenes','inspecciones']) {
+      expect(buscar(raiz,'menu-'+id).tagName).toBe('A');
+      expect(buscar(raiz,'menu-'+id).getAttribute('href')).toBe('/'+id);
     }
-    expect(navegar).not.toHaveBeenCalled();
-
-    // Las opciones del avance sí son enlaces.
-    expect(buscar(raiz, 'menu-clientes').getAttribute('href')).toBe('/clientes');
-    expect(buscar(raiz, 'menu-clientes').textContent).not.toContain('Próximamente');
   });
 
   it('Cerrar sesión borra la sesión y navega a /login (FR1.7)', () => {

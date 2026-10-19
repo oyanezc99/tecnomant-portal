@@ -1,0 +1,18 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.barra-acciones .control { min-width: 0; }
+.acciones-cabecera { display: flex; flex-wrap: wrap; gap: 10px; }
+.tabla { min-width: 760px; }
+.tabla th, .tabla td { padding-top: 14px; padding-bottom: 14px; vertical-align: middle; }
+.acciones { gap: 10px; }
+
+@media (max-width: 600px) {
+  .barra-acciones > .control { flex-basis: 100% !important; }
+  .acciones-cabecera { width: 100%; }
+  .acciones-cabecera .btn { flex: 1 1 140px; min-height: 44px; }
+}

@@ -1,8 +1,9 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
-import { Tecnico, DatosTecnico, Inspeccion } from '../../core/modelos';
+import { Tecnico, DatosTecnico, Inspeccion, OrdenAdministrativa } from '../../core/modelos';
 import { ToastService } from '../../core/toast.service';
 import { ModalComponent } from '../../shared/modal/modal.component';
 import { BadgeComponent } from '../../shared/badge/badge.component';
@@ -20,6 +21,7 @@ export class TecnicosComponent implements OnInit {
 
   tecnicos: Tecnico[] = [];
   inspecciones: Inspeccion[] = [];
+  ordenes: OrdenAdministrativa[] = [];
   cargando = true;
   filtroTexto = '';
 
@@ -51,38 +53,12 @@ export class TecnicosComponent implements OnInit {
 
   cargarDatos(): void {
     this.cargando = true;
-    this.api.obtenerTecnicos().subscribe({
-      next: (data) => {
-        this.tecnicos = data;
-        this.api.inspecciones().subscribe({
-          next: (insp) => {
-            this.inspecciones = insp;
-            this.cargando = false;
-          },
-          error: () => {
-            this.cargando = false;
-          }
-        });
-      },
-      error: () => {
-        this.toast.mostrar('Error al cargar los técnicos');
-        this.cargando = false;
-      }
-    });
+    forkJoin({ tecnicos: this.api.obtenerTecnicos(), inspecciones: this.api.inspecciones(), ordenes: this.api.ordenes() }).subscribe({ next: datos => { Object.assign(this,datos); this.cargando=false; }, error: () => { this.toast.mostrar('No se pudieron cargar los técnicos y sus órdenes'); this.cargando=false; } });
   }
-
-  /** Calcula el número de inspecciones activas o pendientes para un técnico */
-  obtenerCargaTrabajo(nombreTecnico: string): { texto: string; tipo: 'exito' | 'pendiente' | 'proceso' } {
-    const asignadas = this.inspecciones.filter(i => i.tecnico?.toLowerCase() === nombreTecnico.toLowerCase());
-    const pendientes = asignadas.filter(i => !i.estadoGeneral?.toLowerCase().includes('completado')).length;
-
-    if (pendientes === 0) {
-      return { texto: 'Disponible (0 activas)', tipo: 'exito' };
-    } else if (pendientes <= 2) {
-      return { texto: `En ruta (${pendientes} activas)`, tipo: 'proceso' };
-    } else {
-      return { texto: `Ocupado (${pendientes} activas)`, tipo: 'pendiente' };
-    }
+  obtenerCargaTrabajo(idTecnico: number): { texto: string; tipo: 'exito' | 'pendiente' | 'proceso' } {
+    const activas=this.ordenes.filter(o=>o.idTecnico===idTecnico && o.estado!=='Completada').length;
+    if(activas===0) return {texto:'Disponible (0 activas)',tipo:'exito'};
+    return {texto:activas===1?'1 orden activa':activas+' órdenes activas',tipo:activas<=2?'proceso':'pendiente'};
   }
 
   get tecnicosFiltrados(): Tecnico[] {
@@ -97,7 +73,7 @@ export class TecnicosComponent implements OnInit {
   }
 
   get tecnicosPaginados(): Tecnico[] {
-    const inicio = (this.paginaActual - 1) * this.registrosPorPagina;
+    const inicio = (Math.min(this.paginaActual, this.totalPaginas) - 1) * this.registrosPorPagina;
     return this.tecnicosFiltrados.slice(inicio, inicio + this.registrosPorPagina);
   }
 
@@ -148,7 +124,7 @@ export class TecnicosComponent implements OnInit {
   abrirPerfil(tecnico: Tecnico): void {
     this.tecnicoSeleccionado = tecnico;
     this.modalPerfilAbierto = true;
-    this.inspeccionesTecnico = this.inspecciones.filter(i => i.tecnico?.toLowerCase() === tecnico.nombre.toLowerCase());
+    this.inspeccionesTecnico = this.inspecciones.filter(i => i.idTecnico === tecnico.idTecnico);
   }
 
   cerrarPerfil(): void {
@@ -172,7 +148,7 @@ export class TecnicosComponent implements OnInit {
       dni: tecnico.dni,
       especialidad: tecnico.especialidad,
       usuario: tecnico.usuario,
-      clave: tecnico.clave
+      clave: ''
     };
     this.modalAbierto = true;
   }
@@ -182,7 +158,7 @@ export class TecnicosComponent implements OnInit {
   }
 
   guardar(): void {
-    if (!this.formulario.nombre || !this.formulario.dni || !this.formulario.especialidad || !this.formulario.usuario || !this.formulario.clave) {
+    if (!this.formulario.nombre || !this.formulario.dni || !this.formulario.especialidad || !this.formulario.usuario || (!this.editando && !this.formulario.clave)) {
       this.toast.mostrar('Todos los campos son obligatorios.');
       return;
     }

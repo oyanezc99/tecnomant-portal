@@ -22,9 +22,11 @@ describe('Rutas del portal', () => {
     sessionStorage.clear();
     // Con movimiento reducido el Dashboard no deja un conteo en marcha.
     spyOn(window, 'matchMedia').and.returnValue({ matches: true } as MediaQueryList);
-    api = jasmine.createSpyObj<ApiService>('ApiService', ['resumenOrdenes', 'inspecciones']);
+    api = jasmine.createSpyObj<ApiService>('ApiService', ['resumenOrdenes', 'inspecciones', 'obtenerEquipos', 'clientes']);
     api.resumenOrdenes.and.returnValue(of(RESUMEN));
     api.inspecciones.and.returnValue(of([]));
+    api.obtenerEquipos.and.returnValue(of([]));
+    api.clientes.and.returnValue(of([]));
     TestBed.configureTestingModule({
       providers: [provideRouter(routes), { provide: ApiService, useValue: api }],
     });
@@ -48,11 +50,12 @@ describe('Rutas del portal', () => {
     expect(buscar(destino.raiz, 'layout-titulo-pagina').textContent).toBe('Dashboard');
   });
 
-  it('con sesión, /equipos lleva a /dashboard (FR2.4, A2)', async () => {
+  it('con sesión, /equipos abre su pantalla de mantenimiento', async () => {
     TestBed.inject(SesionService).guardar(SESION);
 
     const destino = await abrir('/equipos');
 
-    expect(destino.url).toBe('/dashboard');
+    expect(destino.url).toBe('/equipos');
+    expect(api.obtenerEquipos).toHaveBeenCalled();
   });
 });

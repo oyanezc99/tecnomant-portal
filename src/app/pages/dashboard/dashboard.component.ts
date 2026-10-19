@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
@@ -16,7 +16,6 @@ interface DiaMes {
   diaNumero: number;
   etiqueta: string;
   completadas: number;
-  pendientes: number;
 }
 
 /** Dashboard: resumen de órdenes por estado y las últimas 5 inspecciones. */
@@ -48,6 +47,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   /** Rendimiento mensual conectado dinámicamente a las inspecciones reales del mes actual */
   readonly rendimientoMensual = signal<DiaMes[]>([]);
+  readonly periodoMensual = signal('');
+  readonly totalMensual = computed(() => this.rendimientoMensual().reduce((total, dia) => total + dia.completadas, 0));
+  readonly maximoDiario = computed(() => Math.max(1, ...this.rendimientoMensual().map(dia => dia.completadas)));
 
   private cancelarConteos: Array<() => void> = [];
 
@@ -91,14 +93,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const ahora = new Date();
     const anio = ahora.getFullYear();
     const mes = ahora.getMonth(); // 0-11
+    this.periodoMensual.set(ahora.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' }));
     
     // Obtener el total de días del mes actual (ej. 31 para octubre)
     const totalDias = new Date(anio, mes + 1, 0).getDate();
 
     // Inicializar mapa de días del mes (1 hasta totalDias)
-    const diasMap: { [key: number]: { completadas: number; pendientes: number } } = {};
+    const diasMap: { [key: number]: { completadas: number } } = {};
     for (let d = 1; d <= totalDias; d++) {
-      diasMap[d] = { completadas: 0, pendientes: 0 };
+      diasMap[d] = { completadas: 0 };
     }
 
     inspecciones.forEach((insp) => {
@@ -109,12 +112,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (!isNaN(fecha.getTime()) && fecha.getFullYear() === anio && fecha.getMonth() === mes) {
           const diaNum = fecha.getDate();
           if (diasMap[diaNum]) {
-            const estado = (insp.estadoGeneral || '').toLowerCase();
-            if (estado.includes('completado') || estado.includes('completada') || estado.includes('bien')) {
-              diasMap[diaNum].completadas++;
-            } else {
-              diasMap[diaNum].pendientes++;
-            }
+            // Toda inspección recibida fue realizada, independientemente del estado del equipo.
+            diasMap[diaNum].completadas++;
           }
         }
       }
@@ -127,7 +126,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         diaNumero: d,
         etiqueta: d.toString(),
         completadas: diasMap[d].completadas,
-        pendientes: diasMap[d].pendientes,
       });
     }
 

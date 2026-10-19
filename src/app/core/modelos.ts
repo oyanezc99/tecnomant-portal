@@ -2,6 +2,7 @@
 
 /** Respuesta de `POST /api/login`. */
 export interface RespuestaLogin {
+  token?: string;
   rol: 'admin' | 'tecnico';
   idTecnico: number | null;
   nombre: string;
@@ -9,6 +10,7 @@ export interface RespuestaLogin {
 
 /** Lo único que el portal guarda de la sesión. Nunca incluye la clave. */
 export interface Sesion {
+  token?: string;
   rol: string;
   nombre: string;
 }
@@ -35,6 +37,7 @@ export type Resultado = 'Bien' | 'Regular' | 'Malo';
 
 /** Elemento de `GET /api/inspecciones`. */
 export interface Inspeccion {
+  idTecnico?: number;
   idInspeccion: number;
   idOrden: number;
   fechaHoraReal: string;
@@ -90,7 +93,6 @@ export interface Tecnico {
   dni: string;
   especialidad: string;
   usuario: string;
-  clave: string;
 }
 
 export interface DatosTecnico {
@@ -108,6 +110,17 @@ export interface OrdenTecnico {
   equipoTipo: string;
   equipoCodigo: string;
   ubicacion?: string;
+  fechaProgramada: string;
+  estado: string;
+}
+export interface OrdenAdministrativa extends OrdenTecnico {
+  idEquipo: number;
+  idTecnico: number;
+  tecnico: string;
+}
+export interface DatosOrden {
+  idEquipo: number;
+  idTecnico: number;
   fechaProgramada: string;
   estado: string;
 }

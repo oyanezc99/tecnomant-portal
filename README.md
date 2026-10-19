@@ -4,15 +4,15 @@ Portal web para el personal administrativo de TecnoMant. Permite ver cómo van l
 
 Está hecho con Angular 18 (componentes standalone) y CSS propio, sin librerías de interfaz. Consume la API REST de TecnoMant.
 
-## Qué incluye esta versión (avance 50 %)
+## Funciones de esta rama
 
-| Pantalla | Estado |
-|---|---|
-| Login (solo entra el rol `admin`) | Incluida |
-| Dashboard: órdenes por estado y últimas 5 inspecciones | Incluida |
-| Clientes: listar, buscar, crear, editar y eliminar | Incluida |
-| Inspecciones: listado con filtro por estado general y detalle con checklist y fotos | Incluida |
-| Equipos, Técnicos y Órdenes | En el menú, desactivados con la etiqueta "Próximamente" |
+- Login de administrador con sesión Bearer; la API valida los permisos de cada petición.
+- Dashboard con órdenes por estado e inspecciones realizadas por día del mes.
+- Mantenimiento de clientes, equipos y técnicos. La clave del técnico no se devuelve al navegador y puede conservarse al editar.
+- Órdenes: crear, asignar equipo/técnico/fecha, editar y eliminar antes de la inspección; consulta de todos los estados, filtros y calendario.
+- Historial por ID de equipo, órdenes asociadas e inspecciones con checklist y fotos protegidas por sesión.
+- Carga operativa calculada con órdenes Pendiente y En proceso por ID de técnico.
+- Listados adaptables, paginación y exportación CSV.
 
 ## Requisitos previos
 
@@ -80,7 +80,7 @@ Este repositorio no guarda usuarios ni claves. Si la API está apagada, el porta
 
 ## Ejecutar las pruebas
 
-Las 61 pruebas unitarias usan Jasmine y Karma, y corren en Chrome sin ventana. No necesitan la API: todas las llamadas se simulan.
+Las pruebas unitarias usan Jasmine y Karma, y corren en Chrome sin ventana. No necesitan la API: todas las llamadas se simulan.
 
 ```bash
 npx ng test --watch=false --browsers=ChromeHeadless --include "src/app/**/*.spec.ts"
@@ -108,7 +108,8 @@ src/
     testing/             Datos y ayudas de las pruebas
 ```
 
-## Limitaciones conocidas
+## Sesión y entorno local
 
-- La API de este avance no usa tokens: solo valida usuario y clave en el login. El control de acceso del portal es una protección de navegación en el navegador, no una medida de seguridad de la API.
-- En el navegador solo se guarda `{ rol, nombre }` en `sessionStorage`; la clave no se guarda en ningún sitio.
+La sesión caduca a las 12 horas y se invalida al cerrar sesión. Reiniciar la API requiere iniciar sesión otra vez, porque el registro de tokens es local al proceso. El portal guarda rol, nombre y token en sessionStorage; nunca la contraseña. Las fotografías requieren la cookie HttpOnly emitida al iniciar sesión.
+
+Usar la rama feature/mantenimientos-equipos-tecnicos-ordenes de la API con la migración db/03_claves_seguras.sql. El despliegue con HTTPS y la medición de disponibilidad/rendimiento quedan fuera de la prueba local.

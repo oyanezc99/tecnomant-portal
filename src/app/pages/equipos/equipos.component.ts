@@ -154,11 +154,11 @@ export class EquiposComponent implements OnInit {
     this.cargandoHistorial = true;
 
     // Cargar inspecciones y filtrar por coincidencia de equipo (código o ID)
-    this.api.inspecciones().subscribe({
+    this.api.ordenes(equipo.idEquipo).subscribe({ next: ordenes => this.historialOrdenes = ordenes, error: error => this.toast.mostrar('No se pudieron cargar las órdenes del equipo') });
+    this.historialOrdenes = [];
+    this.api.inspecciones(equipo.idEquipo).subscribe({
       next: (inspecciones: Inspeccion[]) => {
-        this.historialInspecciones = inspecciones.filter(i => 
-          i.equipoCodigo === equipo.codigoSerie || (i as any).idEquipo === equipo.idEquipo
-        );
+        this.historialInspecciones = inspecciones;
         this.cargandoHistorial = false;
       },
       error: () => {
@@ -203,7 +203,7 @@ export class EquiposComponent implements OnInit {
     }
 
     if (this.editando && this.equipoActualId !== null) {
-      this.api.actualizarEquipo(this.equipoActualId, this.formulario).subscribe({
+      this.api.actualizarEquipo(this.equipoActualId, { ...this.formulario, idCliente: Number(this.formulario.idCliente) }).subscribe({
         next: () => {
           this.toast.mostrar('Equipo actualizado correctamente');
           this.cerrarModal();
@@ -212,7 +212,7 @@ export class EquiposComponent implements OnInit {
         error: () => this.toast.mostrar('Error al actualizar el equipo')
       });
     } else {
-      this.api.crearEquipo(this.formulario).subscribe({
+      this.api.crearEquipo({ ...this.formulario, idCliente: Number(this.formulario.idCliente) }).subscribe({
         next: () => {
           this.toast.mostrar('Equipo creado correctamente');
           this.cerrarModal();

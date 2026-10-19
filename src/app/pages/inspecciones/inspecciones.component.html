@@ -1,14 +1,14 @@
-<div class="barra-acciones" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-  <label class="filtro">
+<div class="tarjeta panel-filtros cabecera-listado">
+  <label class="campo" for="estado-inspecciones">
     Estado general
-    <select #selector class="control" (change)="cambiarEstado(selector.value)" data-testid="inspecciones-filtro-estado">
+    <select id="estado-inspecciones" #selector class="control" (change)="cambiarEstado(selector.value)" data-testid="inspecciones-filtro-estado">
       @for (opcion of opciones; track opcion) {
         <option [value]="opcion" [selected]="opcion === estado()">{{ opcion }}</option>
       }
     </select>
   </label>
 
-  <button type="button" class="btn btn-secundario" (click)="exportarCSV()">📥 Exportar CSV</button>
+  <button type="button" class="btn btn-secundario" (click)="exportarCSV()">Exportar CSV</button>
 </div>
 
 @if (errorCarga(); as mensaje) {
@@ -23,14 +23,14 @@
   </div>
 } @else {
   <div class="tarjeta tabla-contenedor">
-    <table class="tabla" data-testid="inspecciones-tabla">
+    <table class="tabla tabla-adaptable" role="table" data-testid="inspecciones-tabla">
       <thead>
         <tr>
-          <th>Fecha</th>
-          <th>Cliente</th>
-          <th>Equipo</th>
-          <th>Técnico</th>
-          <th>Estado general</th>
+          <th scope="col">Fecha</th>
+          <th scope="col">Cliente</th>
+          <th scope="col">Equipo</th>
+          <th scope="col">Técnico</th>
+          <th scope="col">Estado general</th>
         </tr>
       </thead>
       @if (cargando()) {
@@ -39,11 +39,11 @@
         <tbody>
           @for (inspeccion of paginadas(); track inspeccion.idInspeccion) {
             <tr class="fila-enlace" (click)="abrir(inspeccion.idInspeccion)" data-testid="inspecciones-fila">
-              <td>{{ inspeccion.fechaHoraReal | fechaHora }}</td>
-              <td>{{ inspeccion.cliente }}</td>
-              <td>{{ inspeccion.equipoTipo }} · {{ inspeccion.equipoCodigo }}</td>
-              <td>{{ inspeccion.tecnico }}</td>
-              <td><app-badge [texto]="inspeccion.estadoGeneral" /></td>
+              <td data-etiqueta="Fecha"><button type="button" class="enlace-registro" (click)="$event.stopPropagation(); abrir(inspeccion.idInspeccion)" [attr.aria-label]="'Ver inspección ' + inspeccion.idInspeccion">{{ inspeccion.fechaHoraReal | fechaHora }}</button></td>
+              <td data-etiqueta="Cliente">{{ inspeccion.cliente }}</td>
+              <td data-etiqueta="Equipo">{{ inspeccion.equipoTipo }} · {{ inspeccion.equipoCodigo }}</td>
+              <td data-etiqueta="Técnico">{{ inspeccion.tecnico }}</td>
+              <td data-etiqueta="Estado general"><app-badge [texto]="inspeccion.estadoGeneral" /></td>
             </tr>
           }
         </tbody>
@@ -51,10 +51,10 @@
     </table>
 
     <!-- Controles de Paginación -->
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-top: 1px solid var(--color-borde); flex-wrap: wrap; gap: 12px; font-size: 0.9rem; color: var(--color-texto-suave);">
-      <div style="display: flex; align-items: center; gap: 8px;">
+    <div class="paginacion">
+      <div class="paginacion-grupo">
         <span>Mostrar:</span>
-        <select class="control" (change)="cambiarRegistrosPorPagina($event)" style="width: 80px; padding: 4px 8px;">
+        <select class="control" aria-label="Registros por página" (change)="cambiarRegistrosPorPagina($event)" style="width: 80px; padding: 4px 8px;">
           <option value="10" [selected]="registrosPorPagina() === 10">10</option>
           <option value="25" [selected]="registrosPorPagina() === 25">25</option>
           <option value="50" [selected]="registrosPorPagina() === 50">50</option>
@@ -62,7 +62,7 @@
         <span>registros por página</span>
       </div>
 
-      <div style="display: flex; align-items: center; gap: 12px;">
+      <div class="paginacion-grupo">
         <span>Página {{ paginaActual() }} de {{ totalPaginas() }}</span>
         <div style="display: flex; gap: 6px;">
           <button type="button" class="btn btn-secundario btn-pequeno" [disabled]="paginaActual() === 1" (click)="cambiarPagina(paginaActual() - 1)">

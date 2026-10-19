@@ -149,12 +149,11 @@ export class ClientesComponent implements OnInit {
     const direccion = this.formulario.direccion.trim();
     const contacto = this.formulario.contacto.trim();
 
-    // Regex para validar teléfono / contacto (permite números, espacios, +, -, y paréntesis, de 7 a 15 dígitos)
-    const regexTelefono = /^$\vert{}^[\+]?[(]?\d{3}[)]?[-\s\.]?\d{3}[-\s\.]?\d{4,6}$/;
-    const contactoInvalido = contacto !== '' && !regexTelefono.test(contacto);
+    // Contacto puede ser un nombre o teléfono, según el contrato de la API.
+    const contactoInvalido = contacto.length > 150;
 
     if (contactoInvalido) {
-      this.mensajeContactoInvalido.set('Formato de teléfono o contacto inválido.');
+      this.mensajeContactoInvalido.set('El contacto admite hasta 150 caracteres.');
     } else {
       this.mensajeContactoInvalido.set('');
     }

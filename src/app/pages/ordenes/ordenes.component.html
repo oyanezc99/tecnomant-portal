@@ -1,67 +1,51 @@
-<div class="resumen">
-  <div class="tarjeta resumen-tarjeta resumen-pendientes">
-    <h3>Pendientes</h3>
-    <span class="resumen-numero">{{ resumen.pendientes }}</span>
-  </div>
-  <div class="tarjeta resumen-tarjeta resumen-en-proceso">
-    <h3>En proceso</h3>
-    <span class="resumen-numero">{{ resumen.enProceso }}</span>
-  </div>
-  <div class="tarjeta resumen-tarjeta resumen-completadas">
-    <h3>Completadas</h3>
-    <span class="resumen-numero">{{ resumen.completadas }}</span>
-  </div>
-</div>
-
-<!-- Barra de Acciones y Filtros Avanzados Multicriterio -->
-<div class="barra-acciones" style="margin-top: 1.5rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 12px;">
-  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
-    <input 
-      type="search" 
-      class="control" 
-      placeholder="Buscar por cliente, equipo o ubicación..." 
-      [(ngModel)]="filtroTexto"
-      (input)="actualizarFiltros()"
-      style="flex: 1; min-width: 250px;"
-    />
-    <div style="display: flex; gap: 8px;">
-      <button type="button" class="btn btn-secundario" (click)="limpiarFiltros()">🧹 Limpiar filtros</button>
-      <button type="button" class="btn btn-secundario" (click)="exportarCSV()">📥 Exportar CSV</button>
-      <button type="button" class="btn btn-secundario" (click)="vistaCalendario = !vistaCalendario">
-        {{ vistaCalendario ? '📋 Ver Tabla' : '📅 Ver Calendario' }}
+<section class="tarjeta panel-filtros" aria-label="Buscar y filtrar órdenes">
+  <div class="cabecera-listado">
+    <div>
+      <h2 class="listado-titulo">Programación de trabajo</h2>
+      <p class="listado-ayuda">Consulta las órdenes por técnico, estado y fecha programada.</p>
+    </div>
+    <div class="acciones-listado">
+      <button type="button" class="btn" (click)="abrirFormulario()">+ Nueva orden</button>
+      <button type="button" class="btn btn-secundario" (click)="exportarCSV()">Exportar CSV</button>
+      <button type="button" class="btn btn-secundario" [attr.aria-pressed]="vistaCalendario" (click)="vistaCalendario = !vistaCalendario">
+        {{ vistaCalendario ? 'Ver tabla' : 'Ver calendario' }}
       </button>
     </div>
   </div>
-
-  <!-- Filtros secundarios combinados -->
-  <div style="display: flex; gap: 12px; flex-wrap: wrap; width: 100%;">
-    <select class="control" [(ngModel)]="filtroTecnico" (change)="onCambioTecnicoCombo(filtroTecnico)" style="flex: 1; min-width: 180px;">
-      <option value="">Todos los técnicos</option>
-      @for (t of tecnicos; track t.idTecnico) {
-        <option [value]="t.idTecnico">{{ t.nombre }}</option>
-      }
-    </select>
-
-    <select class="control" [(ngModel)]="filtroEstado" (change)="actualizarFiltros()" style="flex: 1; min-width: 150px;">
-      <option value="">Todos los estados</option>
-      <option value="Pendiente">Pendiente</option>
-      <option value="En proceso">En proceso</option>
-      <option value="Completada">Completada</option>
-    </select>
-
-    <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 220px;">
-      <span style="font-size: 0.85rem; color: var(--color-texto-suave);">Desde:</span>
+  <div class="filtros-ordenes">
+    <label class="campo busqueda-ordenes">Buscar orden
+      <input type="search" class="control" placeholder="Cliente, equipo o ubicación" [(ngModel)]="filtroTexto" (input)="actualizarFiltros()" />
+    </label>
+    <label class="campo">Técnico
+      <select class="control" [(ngModel)]="filtroTecnico" (change)="onCambioTecnicoCombo(filtroTecnico)">
+        <option value="">Todos los técnicos</option>
+        @for (t of tecnicos; track t.idTecnico) { <option [value]="t.idTecnico">{{ t.nombre }}</option> }
+      </select>
+    </label>
+    <label class="campo">Estado
+      <select class="control" [(ngModel)]="filtroEstado" (change)="actualizarFiltros()">
+        <option value="">Todos los estados</option>
+        <option value="Pendiente">Pendiente</option>
+        <option value="En proceso">En proceso</option>
+        <option value="Completada">Completada</option>
+      </select>
+    </label>
+    <label class="campo">Desde
       <input type="date" class="control" [(ngModel)]="filtroFechaDesde" (change)="actualizarFiltros()" />
-    </div>
-
-    <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 220px;">
-      <span style="font-size: 0.85rem; color: var(--color-texto-suave);">Hasta:</span>
+    </label>
+    <label class="campo">Hasta
       <input type="date" class="control" [(ngModel)]="filtroFechaHasta" (change)="actualizarFiltros()" />
-    </div>
+    </label>
+    <button type="button" class="btn btn-secundario limpiar-ordenes" (click)="limpiarFiltros()">Limpiar filtros</button>
   </div>
+</section>
+<div class="resumen-linea" aria-label="Resumen de órdenes">
+  <span><strong>{{ resumen.pendientes }}</strong> pendientes</span>
+  <span><strong>{{ resumen.enProceso }}</strong> en proceso</span>
+  <span><strong>{{ resumen.completadas }}</strong> completadas</span>
 </div>
 
-@if (cargando) {
+@if (errorCarga) { <div class="tarjeta estado-vacio"><p>{{ errorCarga }}</p><button class="btn" (click)="cargarDatosIniciales()">Reintentar</button></div> } @else if (cargando) {
   <div class="tarjeta estado-vacio">
     <p>Cargando órdenes de trabajo...</p>
   </div>
@@ -73,32 +57,32 @@
   @if (!vistaCalendario) {
     <!-- Vista de Tabla con Paginación -->
     <div class="tarjeta tabla-contenedor">
-      <table class="tabla">
+      <table class="tabla tabla-adaptable" role="table">
         <thead>
           <tr>
-            <th>Id</th>
-            <th>Cliente</th>
-            <th>Equipo</th>
-            <th>Ubicación</th>
-            <th>Fecha Programada</th>
-            <th>Estado</th>
+            <th scope="col">Id</th>
+            <th scope="col">Cliente</th>
+            <th scope="col">Equipo</th>
+            <th scope="col">Ubicación</th>
+            <th scope="col">Fecha Programada</th>
+            <th scope="col">Estado</th>
           </tr>
         </thead>
         <tbody>
           @for (ord of ordenesPaginadas; track ord.idOrden) {
             <tr (click)="abrirDetalleOrden(ord)" style="cursor: pointer;" title="Haz clic para ver el detalle completo de la orden">
-              <td>{{ ord.idOrden }}</td>
-              <td>
+              <td data-etiqueta="Id"><button type="button" class="enlace-registro" (click)="$event.stopPropagation(); abrirDetalleOrden(ord)" [attr.aria-label]="'Ver detalle de orden ' + ord.idOrden">#{{ ord.idOrden }}</button></td>
+              <td data-etiqueta="Cliente">
                 <strong>{{ ord.cliente }}</strong><br>
                 <small style="color: #666;">{{ ord.direccion }}</small>
               </td>
-              <td>
+              <td data-etiqueta="Equipo">
                 {{ ord.equipoTipo }}<br>
                 <small style="color: #666;">{{ ord.equipoCodigo }}</small>
               </td>
-              <td>{{ ord.ubicacion || 'N/A' }}</td>
-              <td>{{ ord.fechaProgramada | date:'dd/MM/yyyy' }}</td>
-              <td>
+              <td data-etiqueta="Ubicación">{{ ord.ubicacion || 'N/A' }}</td>
+              <td data-etiqueta="Fecha Programada">{{ ord.fechaProgramada | date:'dd/MM/yyyy' }}</td>
+              <td data-etiqueta="Estado">
                 <span class="badge" [style.background]="ord.estado === 'Pendiente' ? '#d97706' : ord.estado === 'En proceso' ? '#2563eb' : '#16a34a'" style="padding: 0.25rem 0.5rem; border-radius: 4px; color: #fff; font-size: 0.85rem; font-weight: 600;">
                   {{ ord.estado }}
                 </span>
@@ -109,10 +93,10 @@
       </table>
 
       <!-- Controles de Paginación -->
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-top: 1px solid var(--color-borde); flex-wrap: wrap; gap: 12px; font-size: 0.9rem; color: var(--color-texto-suave);">
-        <div style="display: flex; align-items: center; gap: 8px;">
+      <div class="paginacion">
+        <div class="paginacion-grupo">
           <span>Mostrar:</span>
-          <select class="control" (change)="cambiarRegistrosPorPagina($event)" style="width: 80px; padding: 4px 8px;">
+          <select class="control" aria-label="Registros por página" (change)="cambiarRegistrosPorPagina($event)" style="width: 80px; padding: 4px 8px;">
             <option value="10">10</option>
             <option value="25">25</option>
             <option value="50">50</option>
@@ -120,7 +104,7 @@
           <span>registros por página</span>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="paginacion-grupo">
           <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
           <div style="display: flex; gap: 6px;">
             <button type="button" class="btn btn-secundario btn-pequeno" [disabled]="paginaActual === 1" (click)="cambiarPagina(paginaActual - 1)">
@@ -135,11 +119,11 @@
     </div>
   } @else {
     <!-- Vista de Calendario Mensual Estilo Outlook -->
-    <div class="tarjeta" style="padding: 20px;">
+    <div class="tarjeta calendario-panel">
       <!-- Cabecera de Navegación del Mes -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div class="calendario-cabecera">
         <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--color-principal); margin: 0;">{{ nombreMesAnio }}</h3>
-        <div style="display: flex; gap: 8px;">
+        <div class="calendario-navegacion">
           <button type="button" class="btn btn-secundario btn-pequeno" (click)="cambiarMes(-1)">◀ Mes anterior</button>
           <button type="button" class="btn btn-secundario btn-pequeno" (click)="irAHoy()">Hoy</button>
           <button type="button" class="btn btn-secundario btn-pequeno" (click)="cambiarMes(1)">Mes siguiente ▶</button>
@@ -147,7 +131,7 @@
       </div>
 
       <!-- Cuadrícula del Calendario (Lunes a Domingo) -->
-      <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--color-borde); border: 1px solid var(--color-borde); border-radius: 8px; overflow: hidden;">
+      <div class="calendario-desplazamiento" role="region" aria-label="Calendario mensual de órdenes" tabindex="0"><div class="calendario-cuadricula">
         
         <!-- Cabecera de Días de la Semana -->
         @for (dia of diasSemana; track dia) {
@@ -189,7 +173,7 @@
           </div>
         }
       </div>
-    </div>
+    </div></div>
   }
 }
 
@@ -228,9 +212,33 @@
         <p style="margin: 0; color: #64748b;"><strong>Ubicación específica:</strong> {{ ordenSeleccionada.ubicacion || 'N/A' }}</p>
       </div>
 
-      <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+      <div class="formulario-botones">
+        @if (ordenSeleccionada.estado !== 'Completada') {
+          <button type="button" class="btn btn-secundario" (click)="abrirFormulario(ordenSeleccionada)">Editar orden</button>
+          <button type="button" class="btn btn-peligro" (click)="eliminarOrden(ordenSeleccionada)">Eliminar orden</button>
+        }
         <button type="button" class="btn btn-secundario" (click)="cerrarDetalleOrden()">Cerrar</button>
       </div>
     </div>
+  </app-modal>
+}
+@if (modalFormulario) {
+  <app-modal [titulo]="editandoId === null ? 'Nueva orden' : 'Editar orden'" (cerrar)="modalFormulario = false">
+    <form class="formulario" (ngSubmit)="guardarOrden()">
+      <label class="campo">Equipo
+        <select name="equipo" class="control" [(ngModel)]="formulario.idEquipo" required>
+          @for (equipo of equipos; track equipo.idEquipo) { <option [ngValue]="equipo.idEquipo">{{ equipo.codigoSerie }} · {{ equipo.clienteRazonSocial }}</option> }
+        </select>
+      </label>
+      <label class="campo">Técnico asignado
+        <select name="tecnico" class="control" [(ngModel)]="formulario.idTecnico" required>
+          @for (tecnico of tecnicos; track tecnico.idTecnico) { <option [ngValue]="tecnico.idTecnico">{{ tecnico.nombre }}</option> }
+        </select>
+      </label>
+      <label class="campo">Fecha programada<input name="fecha" type="datetime-local" class="control" [(ngModel)]="formulario.fechaProgramada" required /></label>
+      <label class="campo">Estado<select name="estado" class="control" [(ngModel)]="formulario.estado"><option>Pendiente</option><option>En proceso</option></select></label>
+      <p>La orden se completa al recibir su inspección.</p>
+      <div class="formulario-botones"><button type="button" class="btn btn-secundario" (click)="modalFormulario = false">Cancelar</button><button type="submit" class="btn" [disabled]="guardando">Guardar orden</button></div>
+    </form>
   </app-modal>
 }

@@ -6,10 +6,11 @@
     placeholder="Buscar por nombre, DNI, especialidad o usuario..."
     aria-label="Buscar técnico"
     [(ngModel)]="filtroTexto"
-    style="flex: 1; min-width: 250px;"
+    (input)="paginaActual = 1"
+    style="flex: 1;"
   />
-  <div style="display: flex; gap: 8px;">
-    <button type="button" class="btn btn-secundario" (click)="exportarCSV()">📥 Exportar CSV</button>
+  <div class="acciones-cabecera">
+    <button type="button" class="btn btn-secundario" (click)="exportarCSV()">Exportar CSV</button>
     <button type="button" class="btn" (click)="abrirModalCrear()">+ Nuevo técnico</button>
   </div>
 </div>
@@ -43,7 +44,7 @@
             <td>{{ tec.dni }}</td>
             <td>{{ tec.especialidad }}</td>
             <td>
-              @let carga = obtenerCargaTrabajo(tec.nombre);
+              @let carga = obtenerCargaTrabajo(tec.idTecnico);
               <app-badge [texto]="carga.texto" />
             </td>
             <td>
@@ -93,6 +94,12 @@
   <app-modal [titulo]="'Perfil y Asignaciones: ' + tecnicoSeleccionado.nombre" (cerrar)="cerrarPerfil()">
     <div style="display: flex; flex-direction: column; gap: 16px;">
       <div style="background: var(--color-principal-suave, #f1f5f9); padding: 12px; border-radius: 6px; font-size: 0.9rem;">
+        <h3>Órdenes activas asignadas</h3>
+        @for (orden of ordenes; track orden.idOrden) {
+          @if (orden.idTecnico === tecnicoSeleccionado.idTecnico && orden.estado !== 'Completada') {
+            <p>#{{ orden.idOrden }} · {{ orden.equipoCodigo }} · {{ orden.fechaProgramada | date:'dd/MM/yyyy' }} · {{ orden.estado }}</p>
+          }
+        }
         <p><strong>DNI:</strong> {{ tecnicoSeleccionado.dni }}</p>
         <p><strong>Especialidad:</strong> {{ tecnicoSeleccionado.especialidad }}</p>
         <p><strong>Usuario de acceso:</strong> {{ tecnicoSeleccionado.usuario }}</p>
@@ -154,7 +161,7 @@
       </label>
 
       <label class="campo">
-        Clave *
+        {{ editando ? 'Nueva clave (opcional)' : 'Clave *' }}
         <input class="control" type="password" [(ngModel)]="formulario.clave" placeholder="Contraseña" />
       </label>
 
