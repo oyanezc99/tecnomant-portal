@@ -82,10 +82,10 @@ export interface Equipo {
   tipo: string;
   codigoSerie: string;
   ubicacion: string;
-  clienteRazonSocial?: string;
+  cliente?: string;
 }
 
-export type DatosEquipo = Omit<Equipo, 'idEquipo' | 'clienteRazonSocial'>;
+export type DatosEquipo = Omit<Equipo, 'idEquipo' | 'cliente'>;
 
 export interface Tecnico {
   idTecnico: number;

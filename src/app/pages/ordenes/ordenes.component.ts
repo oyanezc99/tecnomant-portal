@@ -40,7 +40,16 @@ export class OrdenesComponent implements OnInit {
     this.cargando = true;
     this.errorCarga = '';
     forkJoin({ ordenes: this.api.ordenes(), tecnicos: this.api.obtenerTecnicos(), equipos: this.api.obtenerEquipos(), resumen: this.api.resumenOrdenes() }).subscribe({
-      next: datos => { Object.assign(this, datos); this.cargando = false; this.paginaActual = Math.min(this.paginaActual, this.totalPaginas); },
+      next: datos => {
+        Object.assign(this, datos);
+        const ubicacionesPorEquipo = new Map(datos.equipos.map(equipo => [equipo.idEquipo, equipo.ubicacion]));
+        this.ordenes = datos.ordenes.map(orden => ({
+          ...orden,
+          ubicacion: orden.ubicacion || ubicacionesPorEquipo.get(orden.idEquipo),
+        }));
+        this.cargando = false;
+        this.paginaActual = Math.min(this.paginaActual, this.totalPaginas);
+      },
       error: error => { this.cargando = false; this.errorCarga = mensajeDeError(error); this.toast.mostrar(this.errorCarga); }
     });
   }

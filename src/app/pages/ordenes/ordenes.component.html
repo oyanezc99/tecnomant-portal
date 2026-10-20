@@ -227,7 +227,7 @@
     <form class="formulario" (ngSubmit)="guardarOrden()">
       <label class="campo">Equipo
         <select name="equipo" class="control" [(ngModel)]="formulario.idEquipo" required>
-          @for (equipo of equipos; track equipo.idEquipo) { <option [ngValue]="equipo.idEquipo">{{ equipo.codigoSerie }} · {{ equipo.clienteRazonSocial }}</option> }
+          @for (equipo of equipos; track equipo.idEquipo) { <option [ngValue]="equipo.idEquipo">{{ equipo.codigoSerie }} · {{ equipo.cliente }}</option> }
         </select>
       </label>
       <label class="campo">Técnico asignado

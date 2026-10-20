@@ -86,7 +86,7 @@ export class EquiposComponent implements OnInit {
         e.tipo.toLowerCase().includes(texto) ||
         e.codigoSerie.toLowerCase().includes(texto) ||
         e.ubicacion.toLowerCase().includes(texto) ||
-        (e.clienteRazonSocial && e.clienteRazonSocial.toLowerCase().includes(texto));
+        (e.cliente && e.cliente.toLowerCase().includes(texto));
 
       const coincideTipo = !this.filtroTipo || e.tipo === this.filtroTipo;
       const coincideCliente = !this.filtroCliente || e.idCliente.toString() === this.filtroCliente;
@@ -133,7 +133,7 @@ export class EquiposComponent implements OnInit {
       `"${(e.tipo || '').replace(/"/g, '""')}"`,
       `"${(e.codigoSerie || '').replace(/"/g, '""')}"`,
       `"${(e.ubicacion || '').replace(/"/g, '""')}"`,
-      `"${(e.clienteRazonSocial || '').replace(/"/g, '""')}"`
+      `"${(e.cliente || '').replace(/"/g, '""')}"`
     ]);
 
     const csvContent = [encabezados.join(','), ...filas.map(f => f.join(','))].join('\n');

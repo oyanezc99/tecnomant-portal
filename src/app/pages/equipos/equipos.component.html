@@ -52,7 +52,7 @@
             <td data-etiqueta="Tipo"><strong>{{ eq.tipo }}</strong></td>
             <td data-etiqueta="Código / Serie"><code>{{ eq.codigoSerie }}</code></td>
             <td data-etiqueta="Ubicación">{{ eq.ubicacion }}</td>
-            <td data-etiqueta="Cliente">{{ eq.clienteRazonSocial || 'N/A' }}</td>
+            <td data-etiqueta="Cliente">{{ eq.cliente || 'N/A' }}</td>
             <td data-etiqueta="Acciones">
               <div class="acciones">
                 <button type="button" class="btn btn-secundario btn-pequeno" (click)="$event.stopPropagation(); abrirHistorial(eq)" [attr.aria-label]="'Ver historial de ' + eq.codigoSerie">Historial</button>
